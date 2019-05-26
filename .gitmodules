@@ -1,0 +1,6 @@
+[submodule "Server/Src/ThirdParty/jsoncpp"]
+	path = Server/Src/ThirdParty/jsoncpp
+	url = https://github.com/yansong1221/jsoncpp.git
+[submodule "Server/Src/ThirdParty/fmt"]
+	path = Server/Src/ThirdParty/fmt
+	url = https://github.com/yansong1221/fmt.git
