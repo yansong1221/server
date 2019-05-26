@@ -15,30 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GateServer.cpp">
+    <ClCompile Include="LoginServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="GateServerConfig.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="LoginServerManager.cpp">
+    <ClCompile Include="GateServerManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GateServer.h">
+    <ClInclude Include="LoginServer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="..\MessageDefine\MessageCmd.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="GateServerConfig.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="LoginServerManager.h">
+    <ClInclude Include="GateServerManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

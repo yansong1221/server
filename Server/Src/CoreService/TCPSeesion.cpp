@@ -50,8 +50,8 @@ void CTCPSeesion::startRecv()
 	{
 		if (ec || nSize == 0)
 		{
-			m_TCPSeesionManager.getTCPEventDelegate().onDisconnected(getConnID());
 			clear();
+			m_TCPSeesionManager.getTCPEventDelegate().onDisconnected(getConnID());		
 			return;
 		}
 		m_LastRecvTimePoint = std::chrono::steady_clock::now();
@@ -136,7 +136,7 @@ CTCPSeesionManager::CTCPSeesionManager(uint16_t nMaxSeesionNum, CTCPManager& TCP
 {
 	for (int nArrayIndex = 0; nArrayIndex < nMaxSeesionNum; ++nArrayIndex)
 	{
-		m_vecTCPSeesion.push_back(new CTCPSeesion(*this, nArrayIndex));
+		m_vecTCPSeesion.push_back(new CTCPSeesion(*this, nArrayIndex + 1));
 	}	
 }
 
@@ -170,7 +170,12 @@ CTCPSeesion* CTCPSeesionManager::createSeesion()
 
 CTCPSeesion* CTCPSeesionManager::findSeesionByConnID(int nConnID)
 {
-	uint16_t arrayIndex = nConnID;
+	if (nConnID <= 0)
+	{
+		return nullptr;
+	}
+
+	uint16_t arrayIndex = nConnID - 1;
 
 	if (arrayIndex > m_vecTCPSeesion.size() - 1)
 	{

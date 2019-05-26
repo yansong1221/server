@@ -25,6 +25,8 @@ public:
 
 	SMsgHeader& getMsgHeader();
 	CMemoryStream& getBody();
+
+	void reset();
 private:
 	SMsgHeader m_MsgHeader;
 	CMemoryStream m_Body;

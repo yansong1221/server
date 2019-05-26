@@ -1,9 +1,9 @@
-
-#include "CenterServer.h"
+#include "LoginServer.h"
 
 int main()
 {
-	CCenterServer sev;
+	CLoginServer sev;
+
 	if (sev.startUp() == false)
 	{
 		getchar();

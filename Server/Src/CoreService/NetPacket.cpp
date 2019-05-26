@@ -13,7 +13,7 @@ CNetPacket::~CNetPacket()
 
 int CNetPacket::parse(const void* pData, int nSize)
 {
-	m_Body.clear();
+	reset();
 	memset(&m_MsgHeader, 0, sizeof(m_MsgHeader));
 
 	if (nSize < sizeof(SMsgHeader))
@@ -65,4 +65,10 @@ SMsgHeader& CNetPacket::getMsgHeader()
 CMemoryStream& CNetPacket::getBody()
 {
 	return m_Body;
+}
+
+void CNetPacket::reset()
+{
+	m_Body.clear();
+	memset(&m_MsgHeader, 0, sizeof(m_MsgHeader));
 }

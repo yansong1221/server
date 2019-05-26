@@ -25,17 +25,10 @@ CTimerManager& CEventDispatcher::getTimerManager()
 
 void CEventDispatcher::run()
 {
-	try
+	while (m_bRunStatus)
 	{
-		while (m_bRunStatus)
-		{
-			m_timerManager.poll();
-			m_IOService.poll();
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-	}
-	catch (...)
-	{
-
+		m_timerManager.poll();
+		m_IOService.poll();
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
 }

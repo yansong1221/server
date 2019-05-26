@@ -77,7 +77,7 @@ public:
 	template <typename T, STREAM_ENABLE_TYPE>
 	void append(const T& value) 
 	{
-		return append(&value, sizeof(T));
+		return appendBinary(&value, sizeof(T));
 	}
 
 	void appendBinary(const void* src, size_t size);
