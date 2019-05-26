@@ -29,8 +29,7 @@ protected:
 	void registerCenterServerMsseage(uint16_t nMainCmd, uint16_t nSubCmd, std::function<void(CNetPacket*)> callBack);
 
 
-	//------------------------------------中心服务器消息处理------------------------------------//
-		
+	//------------------------------------中心服务器消息处理------------------------------------//		
 	void onCenterServerRegisterResult(CNetPacket* pNetPacket);
 
 public:
