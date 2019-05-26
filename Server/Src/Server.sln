@@ -11,6 +11,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GateServer", "GateServer\Ga
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdParty", "ThirdParty", "{3466DAA2-64C8-49CD-A948-BFCDD5E2921C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fmt", "ThirdParty\fmt\fmt.vcxproj", "{A79D639B-AB28-4B5A-A316-3CAC774E47B1}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jsoncpp", "ThirdParty\jsoncpp\jsoncpp.vcxproj", "{B794E623-7D11-4FB8-AAD1-E29ACD27095E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -43,9 +47,29 @@ Global
 		{83B704C3-42B7-4917-9BCF-792540321C43}.Release|x64.Build.0 = Release|x64
 		{83B704C3-42B7-4917-9BCF-792540321C43}.Release|x86.ActiveCfg = Release|Win32
 		{83B704C3-42B7-4917-9BCF-792540321C43}.Release|x86.Build.0 = Release|Win32
+		{A79D639B-AB28-4B5A-A316-3CAC774E47B1}.Debug|x64.ActiveCfg = Debug|x64
+		{A79D639B-AB28-4B5A-A316-3CAC774E47B1}.Debug|x64.Build.0 = Debug|x64
+		{A79D639B-AB28-4B5A-A316-3CAC774E47B1}.Debug|x86.ActiveCfg = Debug|Win32
+		{A79D639B-AB28-4B5A-A316-3CAC774E47B1}.Debug|x86.Build.0 = Debug|Win32
+		{A79D639B-AB28-4B5A-A316-3CAC774E47B1}.Release|x64.ActiveCfg = Release|x64
+		{A79D639B-AB28-4B5A-A316-3CAC774E47B1}.Release|x64.Build.0 = Release|x64
+		{A79D639B-AB28-4B5A-A316-3CAC774E47B1}.Release|x86.ActiveCfg = Release|Win32
+		{A79D639B-AB28-4B5A-A316-3CAC774E47B1}.Release|x86.Build.0 = Release|Win32
+		{B794E623-7D11-4FB8-AAD1-E29ACD27095E}.Debug|x64.ActiveCfg = Debug|x64
+		{B794E623-7D11-4FB8-AAD1-E29ACD27095E}.Debug|x64.Build.0 = Debug|x64
+		{B794E623-7D11-4FB8-AAD1-E29ACD27095E}.Debug|x86.ActiveCfg = Debug|Win32
+		{B794E623-7D11-4FB8-AAD1-E29ACD27095E}.Debug|x86.Build.0 = Debug|Win32
+		{B794E623-7D11-4FB8-AAD1-E29ACD27095E}.Release|x64.ActiveCfg = Release|x64
+		{B794E623-7D11-4FB8-AAD1-E29ACD27095E}.Release|x64.Build.0 = Release|x64
+		{B794E623-7D11-4FB8-AAD1-E29ACD27095E}.Release|x86.ActiveCfg = Release|Win32
+		{B794E623-7D11-4FB8-AAD1-E29ACD27095E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A79D639B-AB28-4B5A-A316-3CAC774E47B1} = {3466DAA2-64C8-49CD-A948-BFCDD5E2921C}
+		{B794E623-7D11-4FB8-AAD1-E29ACD27095E} = {3466DAA2-64C8-49CD-A948-BFCDD5E2921C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A96695C7-54A7-4AD7-9653-051B878A4D0E}
