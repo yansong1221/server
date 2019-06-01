@@ -27,6 +27,12 @@
     <ClCompile Include="LoginServerManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="CenterServerManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientAgentManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GateServer.h">
@@ -39,6 +45,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="LoginServerManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CenterServerManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientAgentManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

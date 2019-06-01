@@ -2,6 +2,7 @@
 
 #include <boost/serialization/singleton.hpp>
 #include <string>
+#include "fmt/core.h"
 
 class CLogService : public boost::serialization::singleton<CLogService>
 {
@@ -28,3 +29,9 @@ public:
 private:
 	void printLog(ELogLevel eLogLevel, const std::string& szString);
 };
+
+#define CLOG_INFO(str) CLogService::get_mutable_instance().logInfo(str)
+#define CLOG_DEBUG(str) CLogService::get_mutable_instance().logDebug(str)
+#define CLOG_WARNING(str) CLogService::get_mutable_instance().logWarning(fmt::format("{},{},line:{},{}",__FILE__,__FUNCTION__,__LINE__,str))
+#define CLOG_ERROR(str)  CLogService::get_mutable_instance().logError(fmt::format("{},{},line:{},{}",__FILE__,__FUNCTION__,__LINE__,str));
+#define CLOG_FATAL(str) CLogService::get_mutable_instance().logFatal(fmt::format("{},{},line:{},{}",__FILE__,__FUNCTION__,__LINE__,str))

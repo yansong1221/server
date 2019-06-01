@@ -14,15 +14,15 @@ public:
 	CLoginServer();
 	~CLoginServer();
 public:
-	virtual void onNetworkMessage(int nConnID, CNetPacket* pNetPacket);
-	virtual void onConnected(int nConnID);
-	virtual void onDisconnected(int nConnID);
+	virtual void onNetworkMessage(uint32_t nConnID, CNetPacket* pNetPacket);
+	virtual void onConnected(uint32_t nConnID);
+	virtual void onDisconnected(uint32_t nConnID);
 
 
 	//中心服务器发过来的消息
 	void onMeesageFromCenterServer(CNetPacket* pNetPacket);
 
-	void onMeesageFromGateServer(int nConnID, CNetPacket* pNetPacket);
+	void onMeesageFromGateServer(uint32_t nConnID, CNetPacket* pNetPacket);
 	//注册中心服务器返回的消息
 	void registerCenterServerMessage(uint16_t nMainCmd, uint16_t nSubCmd, CenterServerMessageCallBacker callBack);
 	void registerGateServerMessage(uint16_t nMainCmd, uint16_t nSubCmd, GateServerMessageCallBacker callBack);
@@ -50,7 +50,8 @@ public:
 	void onCenterServerGateOnline(CNetPacket* pNetPacket);
 
 	//-----------------------------------网关服务器消息处理 ----------------------------------//
-	void onGateServerRegisterResult(int nConnID, CNetPacket* pNetPacket);
+	void onGateServerRegisterResult(uint32_t nConnID, CNetPacket* pNetPacket);
+	void onGateServerRelayGameClientMessage(uint32_t nConnID, CNetPacket* pNetPacket);
 private:
 	CEventDispatcher m_eventDispatcher;
 	CTCPManager	m_tcpManager;

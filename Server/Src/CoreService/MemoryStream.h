@@ -67,6 +67,8 @@ public:
 	std::string readBinary(size_t sz);
 	std::string readString();
 
+	std::string readAll();
+
 	//–Ú¡–ªØ
 	template <typename T, STREAM_ENABLE_TYPE> CMemoryStream& operator << (const T& value)
 	{

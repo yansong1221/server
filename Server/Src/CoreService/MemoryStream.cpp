@@ -72,6 +72,13 @@ std::string CMemoryStream::readString()
 }
 
 
+std::string CMemoryStream::readAll()
+{
+	std::string out((char*)&data_[readPos_], writePos_);
+	readPos_ = writePos_;
+	return out;
+}
+
 void CMemoryStream::appendBinary(const void* src, size_t sz)
 {
 	resetReadPos();

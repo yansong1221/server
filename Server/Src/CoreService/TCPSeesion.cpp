@@ -216,5 +216,3 @@ boost::asio::io_service& CTCPSeesionManager::getIOService()
 {
 	return m_TCPManager.getEventDispatcher().getIOService();
 }
-
-uint16_t CTCPSeesionManager::s_bindIndex = 0;

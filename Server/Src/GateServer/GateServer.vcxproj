@@ -159,6 +159,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CenterServerManager.cpp" />
+    <ClCompile Include="ClientAgentManager.cpp" />
     <ClCompile Include="GateServer.cpp" />
     <ClCompile Include="GateServerConfig.cpp" />
     <ClCompile Include="LoginServerManager.cpp" />
@@ -166,6 +168,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\MessageDefine\MessageCmd.h" />
+    <ClInclude Include="CenterServerManager.h" />
+    <ClInclude Include="ClientAgentManager.h" />
     <ClInclude Include="GateServer.h" />
     <ClInclude Include="GateServerConfig.h" />
     <ClInclude Include="LoginServerManager.h" />

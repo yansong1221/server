@@ -7,9 +7,9 @@
 class ITCPEventDelegate
 {
 public:
-	virtual void onNetworkMessage(int nConnID, CNetPacket* pNetPacket) = 0;
-	virtual void onConnected(int nConnID) = 0;
-	virtual void onDisconnected(int nConnID) = 0;
+	virtual void onNetworkMessage(uint32_t nConnID, CNetPacket* pNetPacket) = 0;
+	virtual void onConnected(uint32_t nConnID) = 0;
+	virtual void onDisconnected(uint32_t nConnID) = 0;
 };
 
 class CEventDispatcher;
@@ -29,14 +29,16 @@ public:
 	CTCPSeesion* connectTo(const std::string& szIPAddress, int nPort);
 	void asyncConnectTo(const std::string& szIPAddress, int nPort,std::function<void(CTCPSeesion*)> connHandler);
 
-	void closeSeesion(int nConnID);
+	void closeSeesion(uint32_t nConnID);
 
 
-	void sendData(int nConnID, const void* pData, int nSize);
-	void sendData(int nConnID, CNetPacket* pNetPacket);
+	void sendData(uint32_t nConnID, const void* pData, int nSize);
+	void sendData(uint32_t nConnID, CNetPacket* pNetPacket);
 
 	std::string getListenAddress() const;
 	int getListenPort() const;
+
+	CTCPSeesion* findTCPSeesionByConnID(uint32_t nConnID);
 
 	CEventDispatcher& getEventDispatcher();
 private:

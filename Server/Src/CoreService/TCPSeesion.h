@@ -63,9 +63,7 @@ private:
 	boost::asio::io_service& getIOService();
 private:
 	std::vector<CTCPSeesion*> m_vecTCPSeesion;
-	static uint16_t s_bindIndex;
 	CTCPManager& m_TCPManager;
-
 	int m_nNextArrayIndex;
 };
 

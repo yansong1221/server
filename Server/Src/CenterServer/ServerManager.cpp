@@ -3,7 +3,11 @@
 #include "fmt/core.h"
 #include "../CoreService/LogService.h"
 
-CServerManager::CServerManager()
+#include "../CoreService/TCPManager.h"
+#include "../MessageDefine/MessageCmd.h"
+
+CServerManager::CServerManager(CTCPManager& TCPManager)
+	:m_TCPManager(TCPManager)
 {
 }
 
@@ -90,6 +94,47 @@ std::list<const SServerInfo* > CServerManager::getAllLoginServerInfo()
 		}
 	}
 	return listServerInfo;
+}
+
+void CServerManager::broadcastMessageToLoginServer(CNetPacket* pNetPacket)
+{
+	for (auto pServerInfo : CServerManager::get_mutable_instance().getAllLoginServerInfo())
+	{
+		if (pServerInfo->m_eServerType == SServerInfo::eServerTypeLogin)
+		{
+			m_TCPManager.sendData(pServerInfo->m_nConnID, pNetPacket);
+		}
+	}
+}
+
+void CServerManager::sendGateServerListToServerID(int32_t nServerID)
+{
+	auto pServerInfo = findGateServerByServerID(nServerID);
+
+	if (pServerInfo == nullptr)
+	{
+		assert(false);
+		return;
+	}
+
+	CMD::CenterServer::GateServerInfo gateServerInfo;
+	CNetPacket packet;
+
+	for (auto pGateServerInfo : CServerManager::get_mutable_instance().getAllGateServerInfo())
+	{
+		packet.reset();
+
+		strcpy(gateServerInfo.szServerAddress, pGateServerInfo->m_szServerAddress.c_str());
+		gateServerInfo.n32ServerID = pGateServerInfo->m_nServerID;
+		gateServerInfo.n32Port = pGateServerInfo->m_nPort;
+
+		packet.getMsgHeader().unMainCmd = (uint16_t)CMD::EMainCmd::eMessageCenterServer;
+		packet.getMsgHeader().unSubCmd = (uint16_t)CMD::ESubCenterCmd::eMessageGateServerList;
+
+		packet.getBody() << gateServerInfo;
+
+		m_TCPManager.sendData(nConnID, &packet);
+	}
 }
 
 void CServerManager::serverDisconnect(uint32_t nServerID)

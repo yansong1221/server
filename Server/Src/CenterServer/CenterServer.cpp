@@ -5,7 +5,8 @@
 #include "ServerManager.h"
 
 CCenterServer::CCenterServer()
-	:m_TCPManager(m_EventDispatcher,*this)
+	:m_TCPManager(m_EventDispatcher,*this),
+	m_ServerManager(m_TCPManager)
 {
 
 }
@@ -15,7 +16,7 @@ CCenterServer::~CCenterServer()
 
 }
 
-void CCenterServer::onNetworkMessage(int nConnID, CNetPacket* pNetPacket)
+void CCenterServer::onNetworkMessage(uint32_t nConnID, CNetPacket* pNetPacket)
 {
 	SMsgHeader& msgHeader = pNetPacket->getMsgHeader();
 	int32_t nMessageID = int32_t(msgHeader.unMainCmd << 16) | msgHeader.unSubCmd;
@@ -33,12 +34,12 @@ void CCenterServer::onNetworkMessage(int nConnID, CNetPacket* pNetPacket)
 	return;
 }
 
-void CCenterServer::onConnected(int nConnID)
+void CCenterServer::onConnected(uint32_t nConnID)
 {
 	//m_TCPManager.sendData(nConnID, "helle", 6);
 }
 
-void CCenterServer::onDisconnected(int nConnID)
+void CCenterServer::onDisconnected(uint32_t nConnID)
 {
 	auto pGateServerInfo = CServerManager::get_mutable_instance().findServerByConnID(nConnID);
 	if (pGateServerInfo)
@@ -111,7 +112,7 @@ void CCenterServer::registerAllMessage()
 	registerServerMessage((uint16_t)CMD::EMainCmd::eMessageCenterServer, (uint16_t)CMD::ESubCenterCmd::eMessageRegisterServer, std::bind(&CCenterServer::onMessageRegisterServer, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void CCenterServer::onMessageRegisterServer(int nConnID, CNetPacket* pNetPacket)
+void CCenterServer::onMessageRegisterServer(uint32_t nConnID, CNetPacket* pNetPacket)
 {
 	try
 	{
@@ -122,7 +123,7 @@ void CCenterServer::onMessageRegisterServer(int nConnID, CNetPacket* pNetPacket)
 
 		if (registerServer.eServerType == CMD::CenterServer::RegisterServer::eServerTypeGateServer)
 		{
-			pServerInfo = CServerManager::get_mutable_instance().activateServer(
+			pServerInfo = m_ServerManager.activateServer(
 				SServerInfo::EServerType::eServerTypeGate, 
 				nConnID, 
 				registerServer.szServerAddress, 
@@ -143,14 +144,14 @@ void CCenterServer::onMessageRegisterServer(int nConnID, CNetPacket* pNetPacket)
 
 				packet.getBody() << gateServerInfo;
 
-				broadcastMessageToLoginServer(&packet);
+				m_ServerManager.broadcastMessageToLoginServer(&packet);
 			}
 			//通知给游戏服务器
 
 		}
 		else if (registerServer.eServerType = CMD::CenterServer::RegisterServer::eServerTypeLoginServer)
 		{
-			pServerInfo = CServerManager::get_mutable_instance().activateServer(
+			pServerInfo = m_ServerManager.activateServer(
 				SServerInfo::eServerTypeLogin,
 				nConnID);
 		}
@@ -194,7 +195,7 @@ void CCenterServer::registerServerMessage(uint16_t unMainCmd, uint16_t unSubCmd,
 	iter->second.push_back(callBack);
 }
 
-void CCenterServer::sendGateServerList(int nConnID)
+void CCenterServer::sendGateServerList(uint32_t nConnID)
 {
 	CMD::CenterServer::GateServerInfo gateServerInfo;
 	CNetPacket packet;
@@ -216,16 +217,7 @@ void CCenterServer::sendGateServerList(int nConnID)
 	}
 }
 
-void CCenterServer::broadcastMessageToLoginServer(CNetPacket* pNetPacket)
-{
-	for (auto pServerInfo : CServerManager::get_mutable_instance().getAllLoginServerInfo())
-	{
-		if (pServerInfo->m_eServerType == SServerInfo::eServerTypeLogin)
-		{
-			m_TCPManager.sendData(pServerInfo->m_nConnID, pNetPacket);
-		}
-	}
-}
+
 
 void CCenterServer::run()
 {

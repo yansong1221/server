@@ -84,12 +84,12 @@ void CTCPManager::asyncConnectTo(const std::string& szIPAddress, int nPort, std:
 	});
 }
 
-void CTCPManager::closeSeesion(int nConnID)
+void CTCPManager::closeSeesion(uint32_t nConnID)
 {
 	m_TCPSeesionManager.closeSeesion(nConnID);
 }
 
-void CTCPManager::sendData(int nConnID, const void* pData, int nSize)
+void CTCPManager::sendData(uint32_t nConnID, const void* pData, int nSize)
 {
 	auto pTCPSeesion = m_TCPSeesionManager.findSeesionByConnID(nConnID);
 
@@ -101,7 +101,7 @@ void CTCPManager::sendData(int nConnID, const void* pData, int nSize)
 	pTCPSeesion->sendData(pData, nSize);
 }
 
-void CTCPManager::sendData(int nConnID, CNetPacket* pNetPacket)
+void CTCPManager::sendData(uint32_t nConnID, CNetPacket* pNetPacket)
 {
 	std::string sendBuffer = pNetPacket->getPackingData();
 	sendData(nConnID, sendBuffer.data(), sendBuffer.length());
@@ -109,12 +109,32 @@ void CTCPManager::sendData(int nConnID, CNetPacket* pNetPacket)
 
 std::string CTCPManager::getListenAddress() const
 {
-	return m_Acceptor.local_endpoint().address().to_string();
+	try
+	{
+		return m_Acceptor.local_endpoint().address().to_string();
+	}
+	catch (const std::exception&)
+	{
+		return std::string();
+	}
 }
 
 int CTCPManager::getListenPort() const
 {
-	return m_Acceptor.local_endpoint().port();
+	try
+	{
+		return m_Acceptor.local_endpoint().port();
+	}
+	catch (const std::exception&)
+	{
+		return 0;
+	}
+	
+}
+
+CTCPSeesion* CTCPManager::findTCPSeesionByConnID(uint32_t nConnID)
+{
+	return m_TCPSeesionManager.findSeesionByConnID(nConnID);
 }
 
 CEventDispatcher& CTCPManager::getEventDispatcher()

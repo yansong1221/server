@@ -17,7 +17,7 @@ CLoginServer::~CLoginServer()
 
 }
 
-void CLoginServer::onNetworkMessage(int nConnID, CNetPacket* pNetPacket)
+void CLoginServer::onNetworkMessage(uint32_t nConnID, CNetPacket* pNetPacket)
 {
 	//中心服务器消息
 	if (m_pCenterServerSeesion &&
@@ -37,12 +37,12 @@ void CLoginServer::onNetworkMessage(int nConnID, CNetPacket* pNetPacket)
 	onMeesageFromGateServer(nConnID, pNetPacket);
 }
 
-void CLoginServer::onConnected(int nConnID)
+void CLoginServer::onConnected(uint32_t nConnID)
 {
 
 }
 
-void CLoginServer::onDisconnected(int nConnID)
+void CLoginServer::onDisconnected(uint32_t nConnID)
 {
 	//中心服务器断开连接
 	if (m_pCenterServerSeesion &&
@@ -92,7 +92,7 @@ void CLoginServer::onMeesageFromCenterServer(CNetPacket* pNetPacket)
 
 }
 
-void CLoginServer::onMeesageFromGateServer(int nConnID, CNetPacket* pNetPacket)
+void CLoginServer::onMeesageFromGateServer(uint32_t nConnID, CNetPacket* pNetPacket)
 {
 	SMsgHeader& msgHeader = pNetPacket->getMsgHeader();
 	int32_t nMessageID = int32_t(msgHeader.unMainCmd << 16) | msgHeader.unSubCmd;
@@ -361,7 +361,7 @@ void CLoginServer::onCenterServerGateOnline(CNetPacket* pNetPacket)
 	return OnCenterServerGateServerList(pNetPacket);
 }
 
-void CLoginServer::onGateServerRegisterResult(int nConnID, CNetPacket* pNetPacket)
+void CLoginServer::onGateServerRegisterResult(uint32_t nConnID, CNetPacket* pNetPacket)
 {
 	try
 	{
@@ -381,4 +381,12 @@ void CLoginServer::onGateServerRegisterResult(int nConnID, CNetPacket* pNetPacke
 	{
 
 	}
+}
+
+void CLoginServer::onGateServerRelayGameClientMessage(uint32_t nConnID, CNetPacket* pNetPacket)
+{
+	CMD::LoginServer::RelayHeader relayHeader;
+	pNetPacket->getBody() >> relayHeader;
+
+
 }

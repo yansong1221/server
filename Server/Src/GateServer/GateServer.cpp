@@ -4,10 +4,12 @@
 #include "GateServerConfig.h"
 #include "fmt/core.h"
 #include "LoginServerManager.h"
+#include "CenterServerManager.h"
 
 CGateServer::CGateServer()
-	:m_tcpManager(m_eventDispatcher,*this),
-	m_pCenterServerSeesion(nullptr)
+	:m_TCPManager(m_eventDispatcher,*this),
+	m_CenterServerManager(m_TCPManager),
+	m_ClientAgentManager(m_TCPManager)
 {
 
 }
@@ -17,35 +19,35 @@ CGateServer::~CGateServer()
 
 }
 
-void CGateServer::onNetworkMessage(int nConnID, CNetPacket* pNetPacket)
+void CGateServer::onNetworkMessage(uint32_t nConnID, CNetPacket* pNetPacket)
 {
 	//中心服务器消息
-	if (m_pCenterServerSeesion && 
-		m_pCenterServerSeesion->getConnID() == nConnID)
+	if (m_CenterServerManager.getConnID() == nConnID)
 	{
-		return onMeesageFromCenterServer(pNetPacket);
+		return  m_CenterServerManager.invokeMessage(pNetPacket);
 	}
 
-	//网关直接处理消息
-	if (onMessageGateServer(nConnID, pNetPacket))
+	//网关直接处理消息 //或者其他服务器转发给客户端的消息
+	if (onMessageGateServerProcess(nConnID, pNetPacket))
 	{
 		return;
 	}
 
+	//客户端消息转发
+	m_ClientAgentManager.onClientRelayToServerMessage(nConnID, pNetPacket);
 }
 
-void CGateServer::onConnected(int nConnID)
+void CGateServer::onConnected(uint32_t nConnID)
 {
 
 }
 
-void CGateServer::onDisconnected(int nConnID)
+void CGateServer::onDisconnected(uint32_t nConnID)
 {
 	//中心服务器断开连接
-	if (m_pCenterServerSeesion && 
-		m_pCenterServerSeesion->getConnID() == nConnID)
+	if (m_CenterServerManager.getConnID() == nConnID)
 	{
-		reconnectCenterServer();
+		m_CenterServerManager.reconnectCenterServer();
 		return;
 	}
 
@@ -55,8 +57,8 @@ void CGateServer::onDisconnected(int nConnID)
 	{
 
 		CLogService::get_mutable_instance().logWarning(fmt::format("登陆服务器断开连接,ConnID:{},ServerID:{}",
-			pLoginServer->m_nConnID,
-			pLoginServer->m_nServerID));
+			pLoginServer->getConnID(),
+			pLoginServer->getServerID()));
 
 		CLoginServerManager::get_mutable_instance().serverDisconnect(nConnID);
 
@@ -65,91 +67,7 @@ void CGateServer::onDisconnected(int nConnID)
 	
 }
 
-void CGateServer::reconnectCenterServer()
-{
-	if (m_pCenterServerSeesion && m_pCenterServerSeesion->isConnectOk())
-	{
-		return;
-	}
-
-	CLogService::get_mutable_instance().logInfo("正在尝试重新连接中心服务器...");
-	m_tcpManager.asyncConnectTo(
-		CGateServerConfig::get_mutable_instance().getConfigInfo().m_centerServerAddress.m_szServerAddress,
-		CGateServerConfig::get_mutable_instance().getConfigInfo().m_centerServerAddress.m_nServerPort,
-		[this](CTCPSeesion* pTCPSeesion)
-	{
-		if (pTCPSeesion)
-		{
-			m_pCenterServerSeesion = pTCPSeesion;
-			CLogService::get_mutable_instance().logInfo("中心服务器重连成功！");
-			registerServerToCenterServer();
-		}
-		else
-		{
-			reconnectCenterServer();
-		}
-	});
-}
-
-void CGateServer::connectCenterServer()
-{
-	// 连接中心服务器
-	while (m_pCenterServerSeesion == nullptr)
-	{
-		CLogService::get_mutable_instance().logInfo(
-			fmt::format("正在连接中心服务器[{}:{}]...",
-				CGateServerConfig::get_mutable_instance().getConfigInfo().m_centerServerAddress.m_szServerAddress,
-				CGateServerConfig::get_mutable_instance().getConfigInfo().m_centerServerAddress.m_nServerPort)
-		);
-
-		m_pCenterServerSeesion = m_tcpManager.connectTo(
-			CGateServerConfig::get_mutable_instance().getConfigInfo().m_centerServerAddress.m_szServerAddress,
-			CGateServerConfig::get_mutable_instance().getConfigInfo().m_centerServerAddress.m_nServerPort
-		);
-
-		//等待2秒
-		std::this_thread::sleep_for(std::chrono::seconds(2));
-	}
-	CLogService::get_mutable_instance().logInfo("中心服务器连接成功！");
-	registerServerToCenterServer();
-}
-
-void CGateServer::registerServerToCenterServer()
-{
-	CMD::CenterServer::RegisterServer RegisterServer;
-	RegisterServer.eServerType = CMD::CenterServer::RegisterServer::eServerTypeGateServer;
-	strcpy(RegisterServer.szServerAddress, m_tcpManager.getListenAddress().c_str());
-	RegisterServer.n32Port = m_tcpManager.getListenPort();
-
-	CNetPacket packet;
-	packet.getMsgHeader().unMainCmd = (uint16_t)CMD::EMainCmd::eMessageCenterServer;
-	packet.getMsgHeader().unSubCmd = (uint16_t)CMD::ESubCenterCmd::eMessageRegisterServer;
-
-	CMemoryStream& body = packet.getBody();
-	body.appendBinary(&RegisterServer, sizeof(RegisterServer));
-
-	sendMessageToCenterServer(&packet);
-}
-
-void CGateServer::onMeesageFromCenterServer(CNetPacket* pNetPacket)
-{
-	SMsgHeader& msgHeader = pNetPacket->getMsgHeader();
-	int32_t nMessageID = int32_t(msgHeader.unMainCmd << 16) | msgHeader.unSubCmd;
-
-	auto iter = m_mapCenterServerMessageCallBack.find(nMessageID);
-	if (iter == m_mapCenterServerMessageCallBack.end())
-	{
-		CLogService::get_mutable_instance().logWarning("没有注册中心服务器返回的消息ID");
-		return;
-	}
-	for (auto callBack : iter->second)
-	{
-		callBack(pNetPacket);
-	}
-	return;
-}
-
-bool CGateServer::onMessageGateServer(int nConnID, CNetPacket* pNetPacket)
+bool CGateServer::onMessageGateServerProcess(uint32_t nConnID, CNetPacket* pNetPacket)
 {
 	SMsgHeader& msgHeader = pNetPacket->getMsgHeader();
 	int32_t nMessageID = int32_t(msgHeader.unMainCmd << 16) | msgHeader.unSubCmd;
@@ -157,7 +75,6 @@ bool CGateServer::onMessageGateServer(int nConnID, CNetPacket* pNetPacket)
 	auto iter = m_mapGateServerMessageCallBack.find(nMessageID);
 	if (iter == m_mapGateServerMessageCallBack.end())
 	{
-		assert(false);
 		return false;
 	}
 	for (auto callBack : iter->second)
@@ -167,25 +84,11 @@ bool CGateServer::onMessageGateServer(int nConnID, CNetPacket* pNetPacket)
 	return true;
 }
 
-void CGateServer::registerCenterServerMessage(uint16_t nMainCmd, uint16_t nSubCmd, CenterServerMessageCallBacker callBack)
-{
-	int32_t nMessageID = int32_t(nMainCmd << 16) | nSubCmd;
 
-	auto iter = m_mapCenterServerMessageCallBack.find(nMessageID);
-	if (iter == m_mapCenterServerMessageCallBack.end())
-	{
-		std::list<CenterServerMessageCallBacker> listMessageCallBack;
-		listMessageCallBack.push_back(callBack);
-		m_mapCenterServerMessageCallBack[nMessageID] = listMessageCallBack;
-		return;
-	}
-	iter->second.push_back(callBack);
-}
-
-void CGateServer::registerGateServerMessage(uint16_t nMainCmd, uint16_t nSubCmd, GateServerMessageCallBacker callBack)
+void CGateServer::registerMessage(uint16_t nSubCmd, GateServerMessageCallBacker callBack)
 {
 	
-	int32_t nMessageID = int32_t(nMainCmd << 16) | nSubCmd;
+	int32_t nMessageID = int32_t((uint16_t)CMD::EMainCmd::eMessageGateServer << 16) | nSubCmd;
 
 	auto iter = m_mapGateServerMessageCallBack.find(nMessageID);
 	if (iter == m_mapGateServerMessageCallBack.end())
@@ -203,13 +106,13 @@ bool CGateServer::listenLocalAddress()
 	try
 	{
 		//监听本地端口
-		m_tcpManager.setAddress(
+		m_TCPManager.setAddress(
 			CGateServerConfig::get_mutable_instance().getConfigInfo().m_localAddress.m_szServerAddress,
 			CGateServerConfig::get_mutable_instance().getConfigInfo().m_localAddress.m_nServerPort
 		);
 
-		m_tcpManager.listen();
-		m_tcpManager.startAccept();
+		m_TCPManager.listen();
+		m_TCPManager.startAccept();
 	}
 	catch (const std::exception& e)
 	{
@@ -225,63 +128,40 @@ bool CGateServer::listenLocalAddress()
 
 void CGateServer::registerAllMessage()
 {
-	//中心服务器消息注册
-	registerCenterServerMessage((uint16_t)CMD::EMainCmd::eMessageCenterServer, (uint16_t)CMD::ESubCenterCmd::eMessageRegisterServerResult, std::bind(&CGateServer::onCenterServerRegisterResult, this, std::placeholders::_1));
+	m_CenterServerManager.registerAllMessage();
 
-	//网关直接处理消息注册
-	registerGateServerMessage((uint16_t)CMD::EMainCmd::eMessageGateServer, (uint16_t)CMD::ESubGateCmd::eMessageRegisterServer, std::bind(&CGateServer::onGateServerRegisterServer, this, std::placeholders::_1, std::placeholders::_2));
+	//注册服务器
+	registerMessage((uint16_t)CMD::ESubGateCmd::eMessageRegisterServer, std::bind(&CGateServer::onGateServerRegisterServer, this, std::placeholders::_1, std::placeholders::_2));
+	//服务器转发给客户端的消息处理
+	registerMessage((uint16_t)CMD::ESubGateCmd::eMessageRelay, std::bind(&CGateServer::onRelayToClientMessage, this, std::placeholders::_1, std::placeholders::_2));
+	//心跳
+	registerMessage((uint16_t)CMD::ESubGateCmd::eMessageHeartBeat, std::bind(&CGateServer::onHeartBeatMessage, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void CGateServer::sendMessageToCenterServer(CNetPacket* pNetPacket)
-{
-	if (m_pCenterServerSeesion)
-	{
-		m_tcpManager.sendData(m_pCenterServerSeesion->getConnID(), pNetPacket);
-	}
-}
-
-void CGateServer::onCenterServerRegisterResult(CNetPacket* pNetPacket)
-{
-	try
-	{
-		CMD::CenterServer::RegisterServerResult registerServerResult;
-		pNetPacket->getBody() >> registerServerResult;
-
-		if (registerServerResult.bSuccess)
-		{
-			CLogService::get_mutable_instance().logInfo("注册中心服务器成功!");
-		}
-		else
-		{
-			CLogService::get_mutable_instance().logInfo("注册中心服务器失败!");
-		}
-	}
-	catch (const std::exception&)
-	{
-
-	}
-}
-
-void CGateServer::onGateServerRegisterServer(int nConnID, CNetPacket* pNetPacket)
+void CGateServer::onGateServerRegisterServer(uint32_t nConnID, CNetPacket* pNetPacket)
 {
 	try
 	{
 		CMD::GateServer::RegisterServer registerServer;
 		pNetPacket->getBody() >> registerServer;
 
-		auto pLoginServer = CLoginServerManager::get_mutable_instance().addLoginServerInfo(registerServer.nServerID, nConnID);
+		//登录服务器注册
+		if (registerServer.eServerType == CMD::GateServer::RegisterServer::eServerTypeLoginServer)
+		{
+			auto pLoginServer = CLoginServerManager::get_mutable_instance().addLoginServer(registerServer.nServerID, m_TCPManager.findTCPSeesionByConnID(nConnID));
 
-		CMD::GateServer::RegisterServerResult registerServerResult;
-		registerServerResult.bSuccess = (pLoginServer != nullptr);
+			CMD::GateServer::RegisterServerResult registerServerResult;
+			registerServerResult.bSuccess = (pLoginServer != nullptr);
 
-		CNetPacket packet;
+			CNetPacket packet;
 
-		packet.getMsgHeader().unMainCmd = (uint16_t)CMD::EMainCmd::eMessageGateServer;
-		packet.getMsgHeader().unSubCmd = (uint16_t)CMD::ESubGateCmd::eMessageRegisterServerResult;
+			packet.getMsgHeader().unMainCmd = (uint16_t)CMD::EMainCmd::eMessageGateServer;
+			packet.getMsgHeader().unSubCmd = (uint16_t)CMD::ESubGateCmd::eMessageRegisterServerResult;
 
-		packet.getBody() << registerServerResult;
+			packet.getBody() << registerServerResult;
 
-		m_tcpManager.sendData(nConnID, &packet);
+			m_TCPManager.sendData(nConnID, &packet);
+		}
 
 	}
 	catch (const std::exception&)
@@ -290,13 +170,30 @@ void CGateServer::onGateServerRegisterServer(int nConnID, CNetPacket* pNetPacket
 	}
 }
 
+
+void CGateServer::onRelayToClientMessage(uint32_t nConnID, CNetPacket* pNetPacket)
+{
+	m_ClientAgentManager.onServerRelayToClientMessage(nConnID, pNetPacket);
+}
+
+void CGateServer::onHeartBeatMessage(uint32_t nConnID, CNetPacket* pNetPacket)
+{
+	auto pTCPSeesion = m_TCPManager.findTCPSeesionByConnID(nConnID);
+
+	if (pTCPSeesion == nullptr)
+	{
+		assert(false);
+		return;
+	}
+}
+
 bool CGateServer::startUp()
 {
-	CLogService::get_mutable_instance().logInfo("正在启动服务器...");
+	CLOG_INFO("正在启动服务器...");
 
 	if (CGateServerConfig::get_mutable_instance().loadConfig() == false)
 	{
-		CLogService::get_mutable_instance().logFatal("载入服务器配置失败！");
+		CLOG_FATAL("载入服务器配置失败！");
 		return false;
 	}
 
@@ -305,9 +202,9 @@ bool CGateServer::startUp()
 		return false;
 	}
 	registerAllMessage();
-	connectCenterServer();
+	m_CenterServerManager.connectCenterServer();
 	
-	CLogService::get_mutable_instance().logInfo("服务器启动成功！");
+	CLOG_INFO("服务器启动成功！");
 	return true;
 }
 

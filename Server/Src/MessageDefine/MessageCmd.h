@@ -6,6 +6,7 @@ namespace CMD
 	{
 		eMessageCenterServer = 1,
 		eMessageGateServer = 2,
+		eMessageLoginServer = 3,	
 	};
 	enum class ESubCenterCmd
 	{
@@ -19,7 +20,14 @@ namespace CMD
 	enum class ESubGateCmd
 	{
 		eMessageRegisterServer = 1,
-		eMessageRegisterServerResult
+		eMessageRegisterServerResult,
+		eMessageRelay,
+		eMessageHeartBeat,
+	};
+
+	enum class ESubLoginCmd
+	{
+		
 	};
 
 	namespace CenterServer
@@ -73,6 +81,11 @@ namespace CMD
 		struct RegisterServerResult
 		{
 			bool bSuccess;
+		};
+
+		struct RelayHeader
+		{
+			uint32_t nClientConnID;
 		};
 	}
 }
