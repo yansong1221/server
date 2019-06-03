@@ -2,7 +2,7 @@
 
 #include <boost/serialization/singleton.hpp>
 #include <string>
-#include "fmt/core.h"
+//#include <fmt/core.h>
 
 class CLogService : public boost::serialization::singleton<CLogService>
 {
