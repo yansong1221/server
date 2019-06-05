@@ -24,12 +24,18 @@
     <ClCompile Include="GateServerManager.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="GameClientManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="LoginServer.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="GateServerManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="GameClientManager.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

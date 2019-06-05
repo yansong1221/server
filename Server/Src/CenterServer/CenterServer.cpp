@@ -41,7 +41,7 @@ void CCenterServer::onConnected(uint32_t nConnID)
 
 void CCenterServer::onDisconnected(uint32_t nConnID)
 {
-	auto pGateServerInfo = CServerManager::get_mutable_instance().findServerByConnID(nConnID);
+	auto pGateServerInfo =m_ServerManager.findServerByConnID(nConnID);
 	if (pGateServerInfo)
 	{
 		CLogService::get_mutable_instance().logWarning(fmt::format("服务器与中心服务器断开连接[{}:{}],ConnID:{},ServerID:{},ServerType:{}", 
@@ -64,10 +64,10 @@ void CCenterServer::onDisconnected(uint32_t nConnID)
 
 			packet.getBody() << gateServerOffline;
 			
-			broadcastMessageToLoginServer(&packet);
+			m_ServerManager.broadcastMessageToLoginServer(&packet);
 		}
 		
-		CServerManager::get_mutable_instance().serverDisconnect(pGateServerInfo->m_nServerID);
+		m_ServerManager.serverDisconnect(pGateServerInfo->m_nServerID);
 		return;
 	}
 }
@@ -200,7 +200,7 @@ void CCenterServer::sendGateServerList(uint32_t nConnID)
 	CMD::CenterServer::GateServerInfo gateServerInfo;
 	CNetPacket packet;
 
-	for (auto pGateServerInfo : CServerManager::get_mutable_instance().getAllGateServerInfo())
+	for (auto pGateServerInfo : m_ServerManager.getAllGateServerInfo())
 	{
 		packet.reset();
 

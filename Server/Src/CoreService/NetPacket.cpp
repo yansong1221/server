@@ -14,7 +14,6 @@ CNetPacket::~CNetPacket()
 int CNetPacket::parse(const void* pData, int nSize)
 {
 	reset();
-	memset(&m_MsgHeader, 0, sizeof(m_MsgHeader));
 
 	if (nSize < sizeof(SMsgHeader))
 	{

@@ -1,7 +1,7 @@
 #include "TCPSeesion.h"
 #include "TCPManager.h"
 #include "EventDispatcher.h"
-#include "NetPacket.h"
+
 
 CTCPSeesion::CTCPSeesion(CTCPSeesionManager& TCPSeesionManager, int nConnID,int nReadBufferSize)
 	:m_pSocket(TCPSeesionManager.getIOService()),
@@ -9,7 +9,7 @@ CTCPSeesion::CTCPSeesion(CTCPSeesionManager& TCPSeesionManager, int nConnID,int 
 	m_nConnID(nConnID),
 	m_bConnected(false)
 {
-	m_tempReadBuffer.resize(nReadBufferSize);
+	m_TempReadBuffer.resize(nReadBufferSize);
 }
 
 CTCPSeesion::~CTCPSeesion()
@@ -43,10 +43,11 @@ void CTCPSeesion::startRecv()
 {
 	if (m_pSocket.is_open() == false && isConnectOk() == false)
 	{
+		assert(false);
 		return;
 	}
 
-	m_pSocket.async_read_some(boost::asio::buffer(m_tempReadBuffer), [this](const boost::system::error_code& ec, std::size_t nSize)
+	m_pSocket.async_read_some(boost::asio::buffer(m_TempReadBuffer), [this](const boost::system::error_code& ec, std::size_t nSize)
 	{
 		if (ec || nSize == 0)
 		{
@@ -55,17 +56,16 @@ void CTCPSeesion::startRecv()
 			return;
 		}
 		m_LastRecvTimePoint = std::chrono::steady_clock::now();
-		m_readBuffer.appendBinary(m_tempReadBuffer.data(), nSize);
+		m_ReadBuffer.appendBinary(m_TempReadBuffer.data(), nSize);
 
-		CNetPacket packet;
 		try
 		{
 			int nSize = 0;
-			while ((nSize = packet.parse(m_readBuffer.data(), m_readBuffer.size())) > 0)
+			while ((nSize = m_NetPacket.parse(m_ReadBuffer.data(), m_ReadBuffer.size())) > 0)
 			{
 
-				m_TCPSeesionManager.getTCPEventDelegate().onNetworkMessage(getConnID(), &packet);
-				m_readBuffer.remove(0, nSize);
+				m_TCPSeesionManager.getTCPEventDelegate().onNetworkMessage(getConnID(), &m_NetPacket);
+				m_ReadBuffer.remove(0, nSize);
 			}
 		}
 		catch (const std::exception&)
@@ -78,39 +78,41 @@ void CTCPSeesion::startRecv()
 	});
 }
 
-void CTCPSeesion::sendData(const void* pData, int nSize)
+void CTCPSeesion::sendData(CNetPacket* pNetPacket /*= nullptr*/)
 {
 	if (m_pSocket.is_open() == false && isConnectOk() == false)
 	{
 		return;
 	}
 
-	if (pData != nullptr && nSize != 0)
+	if (pNetPacket)
 	{
-		m_sendBuffer.append((const char*)pData, nSize);
-	}
+		std::string sendBuffer = pNetPacket->getPackingData();
+		m_SendBuffer.append(sendBuffer);
 
-	if (!m_senddingBuffer.empty() || m_sendBuffer.empty())
+	}
+	
+	if (!m_SenddingBuffer.empty() || m_SendBuffer.empty())
 	{
 		return;
 	}
 
-	m_senddingBuffer = m_sendBuffer;
-	m_sendBuffer.clear();
+	m_SenddingBuffer = m_SendBuffer;
+	m_SendBuffer.clear();
 
-	m_pSocket.async_write_some(boost::asio::buffer(m_senddingBuffer), [this](const boost::system::error_code& ec, std::size_t nSize)
+	m_pSocket.async_write_some(boost::asio::buffer(m_SenddingBuffer), [this](const boost::system::error_code& ec, std::size_t nSize)
 	{
 		if (ec)
 		{
 			//发送发生错误可以忽略，因为无论怎么结束结束一定也会发生错误
-			m_senddingBuffer.clear();
-			m_sendBuffer.clear();
+			m_SenddingBuffer.clear();
+			m_SendBuffer.clear();
 			return;
 		}
-		if (nSize == m_senddingBuffer.size())
+		if (nSize == m_SenddingBuffer.size())
 		{
-			m_senddingBuffer.clear();
-			sendData(nullptr, 0);
+			m_SenddingBuffer.clear();
+			sendData();
 		}
 	});
 }
@@ -118,6 +120,7 @@ void CTCPSeesion::sendData(const void* pData, int nSize)
 void CTCPSeesion::setConnectOk()
 {
 	m_bConnected = true;
+	startRecv();
 }
 
 bool CTCPSeesion::isConnectOk() const

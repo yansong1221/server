@@ -385,7 +385,7 @@ void CLoginServer::onGateServerRegisterResult(uint32_t nConnID, CNetPacket* pNet
 
 void CLoginServer::onGateServerRelayGameClientMessage(uint32_t nConnID, CNetPacket* pNetPacket)
 {
-	CMD::LoginServer::RelayHeader relayHeader;
+	CMD::GateServer::RelayHeader relayHeader;
 	pNetPacket->getBody() >> relayHeader;
 
 

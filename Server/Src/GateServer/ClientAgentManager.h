@@ -15,7 +15,7 @@ public:
 	CClientAgent(CTCPSeesion* pTCPSeesion);
 	~CClientAgent();
 
-	void sendMessage(const std::string& buffer);
+	void sendMessage(CNetPacket* pNetPacket);
 private:
 	CTCPSeesion* m_pTCPSeesion;
 };

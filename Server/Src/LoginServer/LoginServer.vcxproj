@@ -159,11 +159,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GameClientManager.cpp" />
     <ClCompile Include="GateServerManager.cpp" />
     <ClCompile Include="LoginServer.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GameClientManager.h" />
     <ClInclude Include="GateServerManager.h" />
     <ClInclude Include="LoginServer.h" />
   </ItemGroup>

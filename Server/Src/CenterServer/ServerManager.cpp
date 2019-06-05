@@ -98,7 +98,7 @@ std::list<const SServerInfo* > CServerManager::getAllLoginServerInfo()
 
 void CServerManager::broadcastMessageToLoginServer(CNetPacket* pNetPacket)
 {
-	for (auto pServerInfo : CServerManager::get_mutable_instance().getAllLoginServerInfo())
+	for (auto pServerInfo : getAllLoginServerInfo())
 	{
 		if (pServerInfo->m_eServerType == SServerInfo::eServerTypeLogin)
 		{
@@ -120,7 +120,7 @@ void CServerManager::sendGateServerListToServerID(int32_t nServerID)
 	CMD::CenterServer::GateServerInfo gateServerInfo;
 	CNetPacket packet;
 
-	for (auto pGateServerInfo : CServerManager::get_mutable_instance().getAllGateServerInfo())
+	for (auto pGateServerInfo : getAllGateServerInfo())
 	{
 		packet.reset();
 
@@ -133,7 +133,7 @@ void CServerManager::sendGateServerListToServerID(int32_t nServerID)
 
 		packet.getBody() << gateServerInfo;
 
-		m_TCPManager.sendData(nConnID, &packet);
+		m_TCPManager.sendData(pServerInfo->m_nConnID, &packet);
 	}
 }
 

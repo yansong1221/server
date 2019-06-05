@@ -5,6 +5,7 @@
 
 class CNetPacket;
 class CTCPManager;
+class CTCPSeesion;
 
 struct SServerInfo
 {
@@ -24,7 +25,7 @@ private:
 	CTCPSeesion* m_pTCPSeesion;
 };
 
-class CServerManager : public boost::serialization::singleton<CServerManager>
+class CServerManager
 {
 public:
 	CServerManager(CTCPManager& TCPManager);

@@ -10,7 +10,7 @@ class CTCPManager;
 class CTCPSeesion;
 class CNetPacket;
 
-using CenterServerMessageCallBacker = std::function<void(CNetPacket*)>;
+using CenterServerMessageHandler = std::function<void(CNetPacket*)>;
 
 class CCenterServerManager
 {
@@ -33,7 +33,7 @@ public:
 	//中心服务器发过来的消息
 	void invokeMessage(CNetPacket* pNetPacket);
 	//注册中心服务器返回的消息
-	void registerMessage(uint16_t nSubCmd, CenterServerMessageCallBacker callBack);
+	void registerMessage(uint16_t nSubCmd, CenterServerMessageHandler callBack);
 public:
 
 	//------------------------------------中心服务器消息处理------------------------------------//		
@@ -43,7 +43,7 @@ private:
 	CTCPSeesion* m_pTCPSeesion;
 	CTCPManager& m_TCPManager;
 
-	std::unordered_map<int32_t, std::list<CenterServerMessageCallBacker>> m_mapCenterServerMessageCallBack;
+	std::unordered_map<int32_t, std::list<CenterServerMessageHandler>> m_mapCenterServerMessageCallBack;
 	uint32_t m_nServerID;
 	
 };

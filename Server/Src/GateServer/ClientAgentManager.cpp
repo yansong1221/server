@@ -15,14 +15,9 @@ CClientAgent::~CClientAgent()
 
 }
 
-void CClientAgent::sendMessage(const std::string& buffer)
+void CClientAgent::sendMessage(CNetPacket* pNetPacket)
 {
-	if (m_pTCPSeesion->isConnectOk() == false)
-	{
-		assert(false);
-		return;
-	}
-	m_pTCPSeesion->sendData(buffer.data(), buffer.length());
+	m_pTCPSeesion->sendData(pNetPacket);
 }
 
 CClientAgentManager::CClientAgentManager(CTCPManager& TCPManager)
@@ -69,7 +64,9 @@ void CClientAgentManager::onServerRelayToClientMessage(uint32_t nConnID, CNetPac
 	}
 
 	std::string buffer = pNetPacket->getBody().readAll();
-	pClientAgent->sendMessage(buffer);
+	pNetPacket->parse(buffer.data(), buffer.size());
+
+	pClientAgent->sendMessage(pNetPacket);
 }
 
 CClientAgent* CClientAgentManager::findClientAgentByConnID(uint32_t nConnID)

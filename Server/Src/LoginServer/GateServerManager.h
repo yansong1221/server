@@ -22,7 +22,7 @@ public:
 	std::string m_szAddress;
 	int m_nPort;
 	int32_t m_nServerID;
-	int m_nConnID;
+	uint32_t m_nConnID;
 	EConnectStatus m_eConnectStatus;
 
 };
@@ -37,7 +37,7 @@ public:
 	CGateServer* addGateServerInfo(const std::string& szAddress,int nPort,int32_t nServerID);
 
 	CGateServer* findGateServerByServerID(int32_t nServerID);
-	CGateServer* findGateServerByConnID(int nConnID);
+	CGateServer* findGateServerByConnID(uint32_t nConnID);
 
 	std::list<CGateServer*>& getAllGateServer();
 

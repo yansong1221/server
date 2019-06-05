@@ -123,14 +123,14 @@ void CCenterServerManager::invokeMessage(CNetPacket* pNetPacket)
 	return;
 }
 
-void CCenterServerManager::registerMessage(uint16_t nSubCmd, CenterServerMessageCallBacker callBack)
+void CCenterServerManager::registerMessage(uint16_t nSubCmd, CenterServerMessageHandler callBack)
 {
 	int32_t nMessageID = int32_t((uint16_t)CMD::EMainCmd::eMessageCenterServer << 16) | nSubCmd;
 
 	auto iter = m_mapCenterServerMessageCallBack.find(nMessageID);
 	if (iter == m_mapCenterServerMessageCallBack.end())
 	{
-		std::list<CenterServerMessageCallBacker> listMessageCallBack;
+		std::list<CenterServerMessageHandler> listMessageCallBack;
 		listMessageCallBack.push_back(callBack);
 		m_mapCenterServerMessageCallBack[nMessageID] = listMessageCallBack;
 		return;

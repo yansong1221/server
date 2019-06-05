@@ -2,9 +2,10 @@
 
 #include <memory>
 #include <boost/asio.hpp>
-#include "MemoryStream.h"
+#include "NetPacket.h"
 
 class CTCPSeesionManager;
+
 class CTCPSeesion
 {
 public:
@@ -18,13 +19,12 @@ public:
 
 	void shutdown();
 
-	void startRecv();
-
-	void sendData(const void* pData, int nSize);
+	void sendData(CNetPacket* pNetPacket = nullptr);
 
 	void setConnectOk();
 	bool isConnectOk() const;
 private:
+	void startRecv();
 	void clear();
 private:
 	boost::asio::ip::tcp::socket m_pSocket;
@@ -32,15 +32,17 @@ private:
 	int m_nConnID;
 	bool m_bConnected;
 
-	std::string m_tempReadBuffer;
+	std::string m_TempReadBuffer;
 
-	CMemoryStream m_readBuffer;
+	CMemoryStream m_ReadBuffer;
 
 	CTCPSeesionManager& m_TCPSeesionManager;
 	//发送数据缓冲区
-	std::string m_sendBuffer,m_senddingBuffer;
+	std::string m_SendBuffer,m_SenddingBuffer;
 	//最后接收的时间点
 	std::chrono::steady_clock::time_point m_LastRecvTimePoint;
+	//解析的包体
+	CNetPacket m_NetPacket;
 };
 
 class ITCPEventDelegate;

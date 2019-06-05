@@ -52,6 +52,8 @@ public:
 	//-----------------------------------网关服务器消息处理 ----------------------------------//
 	void onGateServerRegisterResult(uint32_t nConnID, CNetPacket* pNetPacket);
 	void onGateServerRelayGameClientMessage(uint32_t nConnID, CNetPacket* pNetPacket);
+
+	//-----------------------------------游戏客户端消息处理 ----------------------------------//
 private:
 	CEventDispatcher m_eventDispatcher;
 	CTCPManager	m_tcpManager;

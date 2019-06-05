@@ -31,8 +31,6 @@ public:
 
 	void closeSeesion(uint32_t nConnID);
 
-
-	void sendData(uint32_t nConnID, const void* pData, int nSize);
 	void sendData(uint32_t nConnID, CNetPacket* pNetPacket);
 
 	std::string getListenAddress() const;

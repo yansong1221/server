@@ -41,7 +41,6 @@ void CTCPManager::startAccept()
 			return;
 		}
 		pTCPSeesion->setConnectOk();
-		pTCPSeesion->startRecv();
 		m_pTCPEventDelegate.onConnected(pTCPSeesion->getConnID());
 		startAccept();
 	});
@@ -60,8 +59,6 @@ CTCPSeesion* CTCPManager::connectTo(const std::string& szIPAddress, int nPort)
 		return nullptr;
 	}
 	pTCPSeesion->setConnectOk();
-	pTCPSeesion->startRecv();
-
 	return pTCPSeesion;
 }
 
@@ -78,8 +75,6 @@ void CTCPManager::asyncConnectTo(const std::string& szIPAddress, int nPort, std:
 			return;
 		}
 		pTCPSeesion->setConnectOk();
-		pTCPSeesion->startRecv();
-
 		connHandler(pTCPSeesion);
 	});
 }
@@ -89,22 +84,10 @@ void CTCPManager::closeSeesion(uint32_t nConnID)
 	m_TCPSeesionManager.closeSeesion(nConnID);
 }
 
-void CTCPManager::sendData(uint32_t nConnID, const void* pData, int nSize)
-{
-	auto pTCPSeesion = m_TCPSeesionManager.findSeesionByConnID(nConnID);
-
-	if (pTCPSeesion == nullptr)
-	{
-		assert(false);
-		return;
-	}
-	pTCPSeesion->sendData(pData, nSize);
-}
-
 void CTCPManager::sendData(uint32_t nConnID, CNetPacket* pNetPacket)
 {
-	std::string sendBuffer = pNetPacket->getPackingData();
-	sendData(nConnID, sendBuffer.data(), sendBuffer.length());
+	auto pTCPSeesion = m_TCPSeesionManager.findSeesionByConnID(nConnID);
+	if(pTCPSeesion)pTCPSeesion->sendData(pNetPacket);
 }
 
 std::string CTCPManager::getListenAddress() const

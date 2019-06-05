@@ -14,13 +14,6 @@ CLoginServer::~CLoginServer()
 
 bool CLoginServer::relayMessage(uint32_t nClientConnID, CNetPacket* pNetPacket)
 {
-	if (!m_pTCPSeesion->isConnectOk())
-	{
-		//连接已经销毁了
-		assert(false);
-		return false;
-	}
-
 	CNetPacket relayPacket;
 	relayPacket.getMsgHeader().unMainCmd = (uint16_t)CMD::EMainCmd::eMessageGateServer;
 	relayPacket.getMsgHeader().unSubCmd = (uint16_t)CMD::ESubGateCmd::eMessageRelay;
@@ -28,12 +21,12 @@ bool CLoginServer::relayMessage(uint32_t nClientConnID, CNetPacket* pNetPacket)
 	CMD::GateServer::RelayHeader relayHeader;
 	relayHeader.nClientConnID = nClientConnID;
 
-	relayPacket.getBody() << relayHeader << pNetPacket->getMsgHeader();
-	relayPacket.getBody().appendBinary(pNetPacket->getBody().data(), pNetPacket->getBody().size());
-	
+	relayPacket.getBody() << relayHeader;
 
-	std::string sendBuffer = relayPacket.getPackingData();
-	m_pTCPSeesion->sendData(sendBuffer.data(), sendBuffer.length());
+	std::string buffer = pNetPacket->getPackingData();
+	relayPacket.getBody().appendBinary(buffer.data(), buffer.size());
+	
+	m_pTCPSeesion->sendData(&relayPacket);
 	return true;
 }
 

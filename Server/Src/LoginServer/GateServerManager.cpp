@@ -49,7 +49,7 @@ CGateServer* CGateServerManager::findGateServerByServerID(int32_t nServerID)
 	return nullptr;
 }
 
-CGateServer* CGateServerManager::findGateServerByConnID(int nConnID)
+CGateServer* CGateServerManager::findGateServerByConnID(uint32_t nConnID)
 {
 	for (auto pGateServer : m_listGateServer)
 	{

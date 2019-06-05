@@ -1,7 +1,7 @@
 #include "Timer.h"
 #include <algorithm>
 
-CTimerItem::CTimerItem(CTimerManager& timerManager, TimeoutCallBack callBack, time_t elapseTime)
+CTimerItem::CTimerItem(CTimerManager& timerManager, TimeoutHandler callBack, time_t elapseTime)
 	:m_startTimePoint(std::chrono::steady_clock::now()),
 	m_timerManager(timerManager),
 	m_timeoutCallBack(callBack),
@@ -58,7 +58,7 @@ CTimerManager::~CTimerManager()
 {
 }
 
-CTimerItem* CTimerManager::addTimer(time_t elapseTime, TimeoutCallBack callBack)
+CTimerItem* CTimerManager::addTimer(time_t elapseTime, TimeoutHandler callBack)
 {
 	auto pTimerItem = new CTimerItem(*this, callBack, elapseTime);
 	m_queTimerItem.push(pTimerItem);
