@@ -12,7 +12,7 @@ CLoginServer::~CLoginServer()
 
 }
 
-bool CLoginServer::relayMessage(uint32_t nClientConnID, CNetPacket* pNetPacket)
+bool CLoginServer::relayClientMessage(uint32_t nClientConnID, CNetPacket* pNetPacket)
 {
 	CNetPacket relayPacket;
 	relayPacket.getMsgHeader().unMainCmd = (uint16_t)CMD::EMainCmd::eMessageGateServer;

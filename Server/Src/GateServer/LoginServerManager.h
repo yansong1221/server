@@ -12,7 +12,7 @@ public:
 	~CLoginServer();
 
 public:
-	bool relayMessage(uint32_t nClientConnID, CNetPacket* pNetPacket);
+	bool relayClientMessage(uint32_t nClientConnID, CNetPacket* pNetPacket);
 	uint32_t getConnID() const;
 	int32_t getServerID() const;
 private:

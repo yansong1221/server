@@ -42,7 +42,7 @@ void CClientAgentManager::onClientRelayToServerMessage(uint32_t nConnID, CNetPac
 			//暂时没有登录服务器
 			return;
 		}
-		if (pLoginServer->relayMessage(nConnID, pNetPacket) == false)
+		if (pLoginServer->relayClientMessage(nConnID, pNetPacket) == false)
 		{
 			//转发失败
 			assert(false);
