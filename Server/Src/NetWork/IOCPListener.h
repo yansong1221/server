@@ -35,6 +35,7 @@ public:
 		ZeroMemory(dataBuffer, sizeof(dataBuffer));
 
 		wsaBuf.buf = dataBuffer;
+		wsaBuf.len = sizeof(dataBuffer);
 	}
 };
 
@@ -60,6 +61,8 @@ private:
 	bool postRecv(IOContext* ioContext);
 
 	bool doAccept(IOContext* ioContext);
+	bool doRecv(IOContext* ioContext);
+	bool postSend(IOContext* ioContext);
 private:
 	SOCKET listenFd_;
 	HANDLE completionPort_;

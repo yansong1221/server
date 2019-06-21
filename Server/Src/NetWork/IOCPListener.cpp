@@ -67,6 +67,7 @@ bool IOCPListener::onThreadRun()
 			doAccept(ioContext);
 			break;
 		case RECV_POSTED:
+			doRecv(ioContext);
 			break;
 		case SEND_POSTED:
 			break;
@@ -227,4 +228,23 @@ bool IOCPListener::doAccept(IOContext* ioContext)
 	}
 
 	return true;
+}
+
+bool IOCPListener::doRecv(IOContext* ioContext)
+{
+	return true;
+}
+
+bool IOCPListener::postSend(IOContext* ioContext)
+{
+	ioContext->ioType = SEND_POSTED;
+	DWORD dwBytes = 0, dwFlags = 0;
+
+	if (::WSASend(ioContext->ioSocket, &ioContext->wsaBuf, 1, &dwBytes, dwFlags, &ioContext->overLapped, NULL) != NO_ERROR)
+	{
+		if (WSAGetLastError() != WSA_IO_PENDING)
+		{
+			return false;
+		}
+	}
 }

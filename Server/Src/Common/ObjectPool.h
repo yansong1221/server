@@ -15,7 +15,10 @@ public:
 			objects_.push_back(new T());
 		}
 	}
-	~ObjectPool();
+	~ObjectPool()
+	{
+
+	}
 
 	T* createObject()
 	{

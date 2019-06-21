@@ -21,6 +21,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetWork", "NetWork\NetWork.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Common\Common.vcxproj", "{E206BB92-39E3-41C2-9921-0D237605C8EC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tewt", "tewt\tewt.vcxproj", "{C1D3C748-9764-4DA1-9C98-9686FC02BA8C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -93,6 +95,14 @@ Global
 		{E206BB92-39E3-41C2-9921-0D237605C8EC}.Release|x64.Build.0 = Release|x64
 		{E206BB92-39E3-41C2-9921-0D237605C8EC}.Release|x86.ActiveCfg = Release|Win32
 		{E206BB92-39E3-41C2-9921-0D237605C8EC}.Release|x86.Build.0 = Release|Win32
+		{C1D3C748-9764-4DA1-9C98-9686FC02BA8C}.Debug|x64.ActiveCfg = Debug|x64
+		{C1D3C748-9764-4DA1-9C98-9686FC02BA8C}.Debug|x64.Build.0 = Debug|x64
+		{C1D3C748-9764-4DA1-9C98-9686FC02BA8C}.Debug|x86.ActiveCfg = Debug|Win32
+		{C1D3C748-9764-4DA1-9C98-9686FC02BA8C}.Debug|x86.Build.0 = Debug|Win32
+		{C1D3C748-9764-4DA1-9C98-9686FC02BA8C}.Release|x64.ActiveCfg = Release|x64
+		{C1D3C748-9764-4DA1-9C98-9686FC02BA8C}.Release|x64.Build.0 = Release|x64
+		{C1D3C748-9764-4DA1-9C98-9686FC02BA8C}.Release|x86.ActiveCfg = Release|Win32
+		{C1D3C748-9764-4DA1-9C98-9686FC02BA8C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

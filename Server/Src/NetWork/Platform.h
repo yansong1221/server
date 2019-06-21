@@ -15,6 +15,7 @@
 #include <WinSock2.h>
 #include <windows.h>
 #include <MSWSock.h>
+#pragma comment(lib, "WS2_32")
 #endif
 
 //Linux header
