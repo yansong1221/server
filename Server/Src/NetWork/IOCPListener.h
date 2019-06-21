@@ -16,10 +16,13 @@ class IOContext
 {
 public:
 	WSAOVERLAPPED		overLapped;			// 每个socket的每一个IO操作都需要一个重叠结构
-	SOCKET				ioSocket;			// 此IO操作对应的socket
 	WSABUF				wsaBuf;				// 数据缓冲
+
+	SOCKET				ioSocket;			// 此IO操作对应的socket	
 	IO_OPERATION_TYPE	ioType;				// IO操作类型
+
 	CHAR				dataBuffer[1024];	//保存数据buffer
+	size_t				availableSize;		//发送或者接收的大小
 
 	IOContext()
 	{
@@ -36,6 +39,7 @@ public:
 
 		wsaBuf.buf = dataBuffer;
 		wsaBuf.len = sizeof(dataBuffer);
+		availableSize = 0;
 	}
 };
 
@@ -59,10 +63,12 @@ private:
 	//投递任务
 	bool postAccept(IOContext* ioContext);
 	bool postRecv(IOContext* ioContext);
+	bool postSend(IOContext* ioContext);
 
 	bool doAccept(IOContext* ioContext);
 	bool doRecv(IOContext* ioContext);
-	bool postSend(IOContext* ioContext);
+	bool doSend(IOContext* ioContext);
+	
 private:
 	SOCKET listenFd_;
 	HANDLE completionPort_;

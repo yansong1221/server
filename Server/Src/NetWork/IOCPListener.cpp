@@ -4,9 +4,9 @@
 
 
 IOCPListener::IOCPListener()
+	:fnAcceptEx(NULL),
+	fnGetAcceptExSockAddrs(NULL)
 {
-	InitFunction();
-
 	listenFd_ = CommonFunc::createSocket();
 	completionPort_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
 
@@ -14,12 +14,7 @@ IOCPListener::IOCPListener()
 	{
 		throw std::runtime_error("CreateIoCompletionPort Failed");
 	}
-
-	// 将socket绑定到完成端口中
-	if (AssociateCompletionPort((HANDLE)listenFd_))
-	{
-		throw std::runtime_error("Bind Listen Socket To IoCompletionPort Failed");	
-	}	
+	
 }
 
 IOCPListener::~IOCPListener()
@@ -45,18 +40,28 @@ bool IOCPListener::onThreadRun()
 
 	BOOL bRet = GetQueuedCompletionStatus(completionPort_, &dwBytes, (PULONG_PTR)&completionKey, &overLapped, 0);
 
+	if (!bRet)
+	{
+		DWORD dwErr = GetLastError();
+		// 如果是超时了，就再继续等吧  
+		if (WAIT_TIMEOUT == dwErr)
+		{
+			return true;
+		}
+
+		return false;
+	}
+
 	// 读取传入的参数
 	ioContext = CONTAINING_RECORD(overLapped, IOContext, overLapped);
+	ioContext->availableSize = dwBytes;
 
-	if (!bRet)
-	{	
-		return true;
-	}
 	
 	// 判断是否有客户端断开
 	if ((0 == dwBytes) && (RECV_POSTED == ioContext->ioType || SEND_POSTED == ioContext->ioType))
 	{
-	
+		CommonFunc::closeSocket(ioContext->ioSocket);
+		IOContextPool_.reclaimObject(ioContext);
 		return true;
 	}
 	else
@@ -70,6 +75,7 @@ bool IOCPListener::onThreadRun()
 			doRecv(ioContext);
 			break;
 		case SEND_POSTED:
+			doSend(ioContext);
 			break;
 		default:
 			break;
@@ -88,19 +94,25 @@ void IOCPListener::setListenAddress(const std::string& address, int port)
 
 	if (bind(listenFd_, (const struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
 	{
-		std::runtime_error("网络绑定发生错误");
+		throw std::runtime_error("网络绑定发生错误");
 	}
 
 	if (::listen(listenFd_, 512) == SOCKET_ERROR)
 	{
-		std::runtime_error("端口正被其他服务占用，监听失败");
+		throw std::runtime_error("端口正被其他服务占用，监听失败");
 	}
 
-	for (int i = 0; i < IOContextPool_.size(); ++i)
+	// 将socket绑定到完成端口中
+	if (!AssociateCompletionPort((HANDLE)listenFd_))
 	{
-		IOContext* ioContext = IOContextPool_.createObject();
-		postAccept(ioContext);
+		throw std::runtime_error("Bind Listen Socket To IoCompletionPort Failed");
 	}
+
+	InitFunction();
+
+	
+	IOContext* ioContext = IOContextPool_.createObject();
+	postAccept(ioContext);
 }
 
 void IOCPListener::InitFunction()
@@ -232,6 +244,18 @@ bool IOCPListener::doAccept(IOContext* ioContext)
 
 bool IOCPListener::doRecv(IOContext* ioContext)
 {
+	
+	if (!postRecv(ioContext))
+	{
+		IOContextPool_.reclaimObject(ioContext);
+	}
+
+	postSend(ioContext);
+	return true;
+}
+
+bool IOCPListener::doSend(IOContext* ioContext)
+{
 	return true;
 }
 
@@ -247,4 +271,6 @@ bool IOCPListener::postSend(IOContext* ioContext)
 			return false;
 		}
 	}
+
+	return true;
 }

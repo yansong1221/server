@@ -52,6 +52,7 @@
 //common header
 #include <string>
 #include <cstdint>
+#include <cassert>
 
 //typedef
 #if PLATFORM_TYPE == PLATFORM_LINUX

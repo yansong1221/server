@@ -37,3 +37,18 @@ SOCKET CommonFunc::createSocket()
 	}
 	return fd;
 }
+
+void CommonFunc::closeSocket(SOCKET fd)
+{
+#if PLATFORM_TYPE == PLATFORM_WIN
+	closesocket(fd);
+#else
+	close(fd);
+#endif
+}
+
+void CommonFunc::shutdownSocket(SOCKET fd)
+{
+	shutdown(fd, 0);
+	shutdown(fd, 1);
+}

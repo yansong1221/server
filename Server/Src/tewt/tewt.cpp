@@ -9,6 +9,7 @@ int main()
 	IOCPListener Listener;
 
 	Listener.setListenAddress("127.0.0.1", 8800);
+	Listener.startThead();
 
 	system("pause");
     std::cout << "Hello World!\n"; 
