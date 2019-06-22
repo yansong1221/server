@@ -4,7 +4,10 @@
 #if  PLATFORM_TYPE == PLATFORM_WIN
 
 IOCPPoller::IOCPPoller()
-	:completionPort_(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0))
+	:completionPort_(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0)),
+	acceptHandler_(nullptr),
+	readHandler_(nullptr),
+	writeHandler_(nullptr)
 {
 	if (NULL == completionPort_)
 	{
@@ -42,7 +45,7 @@ bool IOCPPoller::AssociateCompletionPort(HANDLE fileHandle)
 	return true;
 }
 
-bool IOCPPoller::startRecv(SOCKET fd, void* buffer, size_t sz)
+bool IOCPPoller::asyncRecv(SOCKET fd, void* buffer, size_t sz, ReadHandler handler)
 {
 
 	if (!AssociateCompletionPort((HANDLE)fd))
@@ -60,6 +63,7 @@ bool IOCPPoller::startRecv(SOCKET fd, void* buffer, size_t sz)
 	ioContext->wsaBuf.buf = (CHAR*)buffer;
 	ioContext->wsaBuf.len = sz;
 
+	readHandler_ = handler;
 	int nBytesRecv = WSARecv(ioContext->fd, &ioContext->wsaBuf, 1, &dwBytes, &dwFlags, &ioContext->overLapped, NULL);
 	
 	if ((SOCKET_ERROR == nBytesRecv) && (WSA_IO_PENDING != WSAGetLastError()))
@@ -67,13 +71,15 @@ bool IOCPPoller::startRecv(SOCKET fd, void* buffer, size_t sz)
 		IOContextPool_.reclaimObject(ioContext);
 		return false;
 	}
+
+	
 	return true;
 }
 
-bool IOCPPoller::startAccept(SOCKET listenFd)
+bool IOCPPoller::asyncAccept(SOCKET fd, AcceptHandler handler)
 {
 
-	if (!AssociateCompletionPort((HANDLE)listenFd))
+	if (!AssociateCompletionPort((HANDLE)fd))
 	{
 		assert(false);
 		return false;
@@ -85,7 +91,7 @@ bool IOCPPoller::startAccept(SOCKET listenFd)
 	// 提取扩展函数指针
 	DWORD dwBytes = 0;
 	if (SOCKET_ERROR == WSAIoctl(
-		listenFd,
+		fd,
 		SIO_GET_EXTENSION_FUNCTION_POINTER,
 		&guidAcceptEx,
 		sizeof(guidAcceptEx),
@@ -106,7 +112,6 @@ bool IOCPPoller::startAccept(SOCKET listenFd)
 	ioContext->reset();
 	ioContext->ioType = ACCEPT_POSTED;
 	ioContext->fd = CommonFunc::createSocket();
-	ioContext->listenFd = listenFd;
 	ioContext->wsaBuf.buf = buffer;
 
 	if (INVALID_SOCKET == ioContext->fd)
@@ -115,8 +120,10 @@ bool IOCPPoller::startAccept(SOCKET listenFd)
 		return false;
 	}
 
+	acceptHandler_ = handler;
+
 	// 将接收缓冲置为0,令AcceptEx直接返回,防止拒绝服务攻击
-	if (false == fnAcceptEx(listenFd, ioContext->fd, ioContext->wsaBuf.buf, 0, sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16, &dwBytes, &ioContext->overLapped))
+	if (false == fnAcceptEx(fd, ioContext->fd, ioContext->wsaBuf.buf, 0, sizeof(sockaddr_in) + 16, sizeof(sockaddr_in) + 16, &dwBytes, &ioContext->overLapped))
 	{
 		DWORD dwError = WSAGetLastError();
 		if (WSA_IO_PENDING != dwError)
@@ -124,11 +131,11 @@ bool IOCPPoller::startAccept(SOCKET listenFd)
 			IOContextPool_.reclaimObject(ioContext);
 			return false;
 		}
-	}
+	}	
 	return true;
 }
 
-bool IOCPPoller::startSend(SOCKET fd, void* buffer, size_t sz)
+bool IOCPPoller::asyncSend(SOCKET fd, void* buffer, size_t sz, WriteHandler handler)
 {
 	if (!AssociateCompletionPort((HANDLE)fd))
 	{
@@ -146,6 +153,7 @@ bool IOCPPoller::startSend(SOCKET fd, void* buffer, size_t sz)
 
 	DWORD dwBytes = 0, dwFlags = 0;
 
+	writeHandler_ = handler;
 	if (::WSASend(fd, &ioContext->wsaBuf, 1, &dwBytes, dwFlags, &ioContext->overLapped, NULL) != NO_ERROR)
 	{
 		if (WSAGetLastError() != WSA_IO_PENDING)
@@ -178,32 +186,36 @@ int IOCPPoller::update()
 			{
 				return 0;
 			}
-
 			//主机异常退出
-			else if (ERROR_NETNAME_DELETED == dwErr)
-			{
-				triggerError(ioContext->fd);
-			}
 			else
 			{
-				triggerError(ioContext->fd);
+				if (readHandler_)
+				{
+					if (!readHandler_(ioContext->fd,0))
+					{
+						writeHandler_(ioContext->fd, 0);
+					}
+				}
+				else if (writeHandler_)
+				{
+					writeHandler_(ioContext->fd, 0);
+				}
 			}
 		}
 		else
 		{
-			ioContext->availableSize = dwBytes;
 
 			if (ioContext->ioType == ACCEPT_POSTED)
 			{
-				triggerAccept(ioContext->fd);
+				if (acceptHandler_) acceptHandler_(ioContext->fd);
 			}
 			else if (ioContext->ioType == RECV_POSTED)
 			{
-				triggerRead(ioContext->fd, ioContext->availableSize);;
+				if (readHandler_) readHandler_(ioContext->fd, dwBytes);
 			}
 			else if (ioContext->ioType == SEND_POSTED)
 			{
-				triggerWrite(ioContext->fd, ioContext->availableSize);
+				writeHandler_(ioContext->fd, dwBytes);
 			}
 			else
 			{
@@ -215,29 +227,4 @@ int IOCPPoller::update()
 	}
 	
 }
-
-bool IOCPPoller::triggerError(SOCKET fd)
-{
-	if (!triggerRead(fd, 0))
-	{
-		return triggerWrite(fd, 0);
-	}
-	return true;
-}
-
-bool IOCPPoller::triggerRead(SOCKET fd,size_t bytes)
-{
-	return true;
-}
-
-bool IOCPPoller::triggerAccept(SOCKET fd)
-{
-	return true;
-}
-
-bool IOCPPoller::triggerWrite(SOCKET fd, size_t bytes)
-{
-	return true;
-}
-
 #endif //  PLATFORM_TYPE == PLATFORM_WIN

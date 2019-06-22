@@ -1,14 +1,14 @@
 ﻿// tewt.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
-#include "../NetWork/iocpListener.h"
+#include "../NetWork/TCPListener.h"
 #include "pch.h"
 #include <iostream>
 
 int main()
 {
-	IOCPListener Listener;
+	TCPListener Listener;
 
-	Listener.setListenAddress("127.0.0.1", 8800);
+	Listener.listenAddress("127.0.0.1", 8800);
 	Listener.startThead();
 
 	system("pause");
