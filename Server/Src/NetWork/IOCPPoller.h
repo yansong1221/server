@@ -22,12 +22,20 @@ public:
 private:
 
 	bool AssociateCompletionPort(HANDLE fileHandle);
+
+	ReadHandler findReadHandler(SOCKET fd);
+	WriteHandler findWriteHandler(SOCKET fd);
+
+	bool triggerError(SOCKET fd);
+	bool triggerRead(SOCKET fd,size_t bytes);
+	bool triggerWrite(SOCKET fd, size_t bytes);
 private:
 	HANDLE completionPort_;
 	ObjectPool<IOContext> IOContextPool_;
 	AcceptHandler acceptHandler_;
-	ReadHandler readHandler_;
-	WriteHandler writeHandler_;
+
+	std::unordered_map<SOCKET, ReadHandler>  readHandler_;
+	std::unordered_map <SOCKET,WriteHandler> writeHandler_;
 };
 
 #endif

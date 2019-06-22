@@ -5,9 +5,7 @@
 
 IOCPPoller::IOCPPoller()
 	:completionPort_(CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0)),
-	acceptHandler_(nullptr),
-	readHandler_(nullptr),
-	writeHandler_(nullptr)
+	acceptHandler_(nullptr)
 {
 	if (NULL == completionPort_)
 	{
@@ -45,6 +43,45 @@ bool IOCPPoller::AssociateCompletionPort(HANDLE fileHandle)
 	return true;
 }
 
+ReadHandler IOCPPoller::findReadHandler(SOCKET fd)
+{
+	auto iter = readHandler_.find(fd);
+	if (iter == readHandler_.end()) return nullptr;
+	return iter->second;
+}
+
+WriteHandler IOCPPoller::findWriteHandler(SOCKET fd)
+{
+	auto iter = writeHandler_.find(fd);
+	if (iter == writeHandler_.end()) return nullptr;
+	return iter->second;
+}
+
+bool IOCPPoller::triggerError(SOCKET fd)
+{
+	if (!triggerRead(fd, 0))
+	{
+		triggerWrite(fd, 0);
+	}
+	return true;
+}
+
+bool IOCPPoller::triggerRead(SOCKET fd, size_t bytes)
+{
+	auto handler = findReadHandler(fd);
+	if (handler == nullptr) return false;
+	handler(bytes);
+	return true;
+}
+
+bool IOCPPoller::triggerWrite(SOCKET fd, size_t bytes)
+{
+	auto handler = findWriteHandler(fd);
+	if (handler == nullptr) return false;
+	handler(bytes);
+	return true;
+}
+
 bool IOCPPoller::asyncRecv(SOCKET fd, void* buffer, size_t sz, ReadHandler handler)
 {
 
@@ -63,7 +100,7 @@ bool IOCPPoller::asyncRecv(SOCKET fd, void* buffer, size_t sz, ReadHandler handl
 	ioContext->wsaBuf.buf = (CHAR*)buffer;
 	ioContext->wsaBuf.len = sz;
 
-	readHandler_ = handler;
+	readHandler_[fd] = handler;
 	int nBytesRecv = WSARecv(ioContext->fd, &ioContext->wsaBuf, 1, &dwBytes, &dwFlags, &ioContext->overLapped, NULL);
 	
 	if ((SOCKET_ERROR == nBytesRecv) && (WSA_IO_PENDING != WSAGetLastError()))
@@ -153,7 +190,7 @@ bool IOCPPoller::asyncSend(SOCKET fd, void* buffer, size_t sz, WriteHandler hand
 
 	DWORD dwBytes = 0, dwFlags = 0;
 
-	writeHandler_ = handler;
+	writeHandler_[fd] = handler;
 	if (::WSASend(fd, &ioContext->wsaBuf, 1, &dwBytes, dwFlags, &ioContext->overLapped, NULL) != NO_ERROR)
 	{
 		if (WSAGetLastError() != WSA_IO_PENDING)
@@ -189,33 +226,22 @@ int IOCPPoller::update()
 			//主机异常退出
 			else
 			{
-				if (readHandler_)
-				{
-					if (!readHandler_(ioContext->fd,0))
-					{
-						writeHandler_(ioContext->fd, 0);
-					}
-				}
-				else if (writeHandler_)
-				{
-					writeHandler_(ioContext->fd, 0);
-				}
+				triggerError(ioContext->fd);
 			}
 		}
 		else
 		{
-
 			if (ioContext->ioType == ACCEPT_POSTED)
 			{
 				if (acceptHandler_) acceptHandler_(ioContext->fd);
 			}
 			else if (ioContext->ioType == RECV_POSTED)
 			{
-				if (readHandler_) readHandler_(ioContext->fd, dwBytes);
+				triggerRead(ioContext->fd, dwBytes);
 			}
 			else if (ioContext->ioType == SEND_POSTED)
 			{
-				writeHandler_(ioContext->fd, dwBytes);
+				triggerWrite(ioContext->fd, dwBytes);
 			}
 			else
 			{

@@ -2,6 +2,7 @@
 
 #include "Platform.h"
 #include "../Common/Thread.h"
+#include "TCPConnection.h"
 
 class NetPacket;
 class IEventPoller;
@@ -61,5 +62,8 @@ private:
 	SOCKET fd_;
 	IEventListenerDelegate* eventListenerDelegate_;
 	IEventPoller* eventPoller_;
+
+	TCPConnectionManager TCPConnectionManager_;
+
 };
 

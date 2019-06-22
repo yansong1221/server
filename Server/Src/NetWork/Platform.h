@@ -56,6 +56,7 @@
 #include <functional>
 #include <unordered_map>
 #include <iostream>
+#include <list>
 //typedef
 #if PLATFORM_TYPE == PLATFORM_LINUX
 typedef  int SOCKET;
@@ -70,6 +71,11 @@ typedef struct _WSABUF {
 #define ZeroMemory(Destination,Length) memset((Destination),0,(Length))
 
 #endif
+
+#ifndef MAKE_UINT32
+#define MAKE_UINT32(H,L) (((uint32_t)(H) << 16) | (uint32_t)(L & 0x0000ffff))
+#endif
+
 
 
 enum IO_OPERATION_TYPE

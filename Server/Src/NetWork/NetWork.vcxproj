@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="CommonFunc.cpp" />
     <ClCompile Include="IOCPPoller.cpp" />
+    <ClCompile Include="TCPConnection.cpp" />
     <ClCompile Include="TCPListener.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -28,6 +29,7 @@
     <ClInclude Include="EventPoller.h" />
     <ClInclude Include="IOCPPoller.h" />
     <ClInclude Include="Platform.h" />
+    <ClInclude Include="TCPConnection.h" />
     <ClInclude Include="TCPListener.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

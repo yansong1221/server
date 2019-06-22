@@ -10,6 +10,7 @@
     <ClCompile Include="CommonFunc.cpp" />
     <ClCompile Include="IOCPPoller.cpp" />
     <ClCompile Include="TCPListener.cpp" />
+    <ClCompile Include="TCPConnection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFunc.h" />
@@ -17,5 +18,6 @@
     <ClInclude Include="IOCPPoller.h" />
     <ClInclude Include="Platform.h" />
     <ClInclude Include="TCPListener.h" />
+    <ClInclude Include="TCPConnection.h" />
   </ItemGroup>
 </Project>

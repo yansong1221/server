@@ -4,10 +4,12 @@
 #include "CommonFunc.h"
 #include "IOCPPoller.h"
 
+
 TCPListener::TCPListener()
 	:fd_(CommonFunc::createSocket()),
 	eventListenerDelegate_(nullptr),
-	eventPoller_(nullptr)
+	eventPoller_(nullptr),
+	TCPConnectionManager_(1024)
 {
 #if PLATFORM_TYPE == PLATFORM_WIN
 	eventPoller_ = new IOCPPoller;
@@ -58,6 +60,7 @@ void TCPListener::onThreadEnd()
 bool TCPListener::onThreadRun()
 {
 	eventPoller_->update();
+	std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	return true;
 }
 
@@ -65,10 +68,15 @@ void TCPListener::onAccept(SOCKET fd)
 {
 	eventPoller_->asyncAccept(fd_, std::bind(&TCPListener::onAccept, this, std::placeholders::_1));
 
-	static char buff[1024] = { 0 };
-	eventPoller_->asyncRecv(fd, buff, sizeof(buff), [this](SOCKET fd,size_t bytes)
+	TCPConnection* connection = TCPConnectionManager_.createConnection();
+
+	if (connection == nullptr)
 	{
-		std::cout << buff << std::endl;
-		return true;
-	});
+		//最大连接限制
+		CommonFunc::closeSocket(fd);
+		return;
+	}
+
+	connection->attach(fd, eventPoller_);
+	connection->recvData();
 }
