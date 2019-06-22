@@ -10,6 +10,7 @@ Thread::Thread()
 
 Thread::~Thread()
 {
+	stopThread();	
 }
 
 bool Thread::startThead()
@@ -47,6 +48,9 @@ bool Thread::isRuning() const
 
 void Thread::threradRun()
 {
+	//等待主线程条件变量先等待
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+
 	if (!this->onThreadStart())
 	{
 		return cv_.notify_one();

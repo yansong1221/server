@@ -17,6 +17,21 @@ EpollPoller::~EpollPoller()
 
 }
 
+bool EpollPoller::startRecv(SOCKET fd, void* buffer, size_t sz)
+{
+
+}
+
+bool EpollPoller::startAccept(SOCKET listenFd)
+{
+
+}
+
+bool EpollPoller::startSend(SOCKET fd, void* buffer, size_t sz)
+{
+
+}
+
 int EpollPoller::update()
 {
 	const static int MAX_EVENTS = 10;
@@ -44,6 +59,61 @@ int EpollPoller::update()
 		}
 	}
 
+}
+
+bool EpollPoller::doRegisterRead(SOCKET fd, bool cancel /*= false*/)
+{
+	struct epoll_event ev;
+	memset(&ev, 0, sizeof(ev)); // stop valgrind warning
+	int op;
+
+	ev.data.fd = fd;
+
+	if (!cancel)
+	{
+		op = isRegistered(fd) ? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
+	}
+	else
+	{
+		op = EPOLL_CTL_DEL;
+	}
+	
+	if (epoll_ctl(epfd_, op, fd, &ev) < 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool EpollPoller::doRegisterWrite(SOCKET fd, bool cancel /*= false*/)
+{
+	struct epoll_event ev;
+	memset(&ev, 0, sizeof(ev)); // stop valgrind warning
+	int op;
+
+	ev.data.fd = fd;
+
+	if (!cancel)
+	{
+		op = isRegistered(fd) ? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
+		ev.events = EPOLLIN | EPOLLOUT;
+	}
+	else
+	{
+		op = EPOLL_CTL_MOD;
+		ev.events = EPOLLIN;
+	}
+
+	if (epoll_ctl(epfd_, op, fd, &ev) < 0)
+	{
+		return false;
+	}
+}
+
+bool EpollPoller::isRegistered(SOCKET fd)
+{
+	return true;
 }
 
 #endif
