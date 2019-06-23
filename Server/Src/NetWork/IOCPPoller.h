@@ -7,7 +7,7 @@
 #include "../Common/ObjectPool.h"
 #include "EventPoller.h"
 
-class IOCPPoller : public IEventPoller
+class IOCPPoller : public EventPoller
 {
 public:
 	IOCPPoller();

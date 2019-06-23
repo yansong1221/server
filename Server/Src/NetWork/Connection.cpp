@@ -21,7 +21,7 @@ uint32_t Connection::getConnID() const
 	return MAKE_UINT32(index_, round_);
 }
 
-void Connection::attach(SOCKET fd, IEventPoller* eventPoller)
+void Connection::attach(SOCKET fd, EventPoller* eventPoller)
 {
 	fd_ = fd;
 	eventPoller_ = eventPoller;

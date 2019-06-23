@@ -2,24 +2,21 @@
 #include "TCPListener.h"
 #include "Platform.h"
 #include "CommonFunc.h"
-#include "IOCPPoller.h"
 
 
 TCPListener::TCPListener()
 	:fd_(CommonFunc::createSocket()),
 	eventListenerDelegate_(nullptr),
 	eventPoller_(nullptr),
-	TCPConnectionManager_(1024)
+	ConnectionManager_(1024)
 {
-#if PLATFORM_TYPE == PLATFORM_WIN
-	eventPoller_ = new IOCPPoller;
-#endif
+	eventPoller_ = EventPoller::createEventPoller();
 }
 
 TCPListener::~TCPListener()
 {
-	closesocket(fd_);
-	WSACleanup();
+	CommonFunc::closeSocket(fd_);
+	CommonFunc::clearSocket();
 }
 
 void TCPListener::listenAddress(const std::string& address, int port)
@@ -68,7 +65,7 @@ void TCPListener::onAccept(SOCKET fd)
 {
 	eventPoller_->asyncAccept(fd_, std::bind(&TCPListener::onAccept, this, std::placeholders::_1));
 
-	Connection* connection = TCPConnectionManager_.createConnection();
+	Connection* connection = ConnectionManager_.createConnection();
 
 	if (connection == nullptr)
 	{

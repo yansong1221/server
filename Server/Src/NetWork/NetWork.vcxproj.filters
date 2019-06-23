@@ -11,6 +11,7 @@
     <ClCompile Include="IOCPPoller.cpp" />
     <ClCompile Include="TCPListener.cpp" />
     <ClCompile Include="Connection.cpp" />
+    <ClCompile Include="EventPoller.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFunc.h" />

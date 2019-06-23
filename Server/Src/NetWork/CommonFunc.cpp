@@ -52,3 +52,10 @@ void CommonFunc::shutdownSocket(SOCKET fd)
 	shutdown(fd, 0);
 	shutdown(fd, 1);
 }
+
+void CommonFunc::clearSocket()
+{
+#if PLATFORM_TYPE == PLATFORM_WIN
+	WSACleanup();
+#endif
+}

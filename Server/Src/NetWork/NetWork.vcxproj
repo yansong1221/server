@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommonFunc.cpp" />
+    <ClCompile Include="EventPoller.cpp" />
     <ClCompile Include="IOCPPoller.cpp" />
     <ClCompile Include="Connection.cpp" />
     <ClCompile Include="TCPListener.cpp" />

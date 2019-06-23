@@ -3,7 +3,7 @@
 #include "Platform.h"
 #include "../Common/MemoryStream.h"
 
-class IEventPoller;
+class EventPoller;
 
 class Connection
 {
@@ -12,7 +12,7 @@ public:
 	~Connection();
 public:
 	uint32_t getConnID() const;
-	void attach(SOCKET fd, IEventPoller* eventPoller);
+	void attach(SOCKET fd, EventPoller* eventPoller);
 	void resumeData();
 
 	bool recvData();
@@ -25,7 +25,7 @@ private:
 	uint16_t index_;
 	uint16_t round_;
 	SOCKET fd_;
-	IEventPoller*  eventPoller_;
+	EventPoller*  eventPoller_;
 
 	char recvBuffer[1024];
 

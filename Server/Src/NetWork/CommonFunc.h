@@ -12,5 +12,7 @@ public:
 	static SOCKET createSocket();
 	static void closeSocket(SOCKET fd);
 	static void shutdownSocket(SOCKET fd);
+
+	static void clearSocket();
 };
 

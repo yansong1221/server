@@ -6,7 +6,7 @@ using AcceptHandler = std::function<void(SOCKET)>;
 using ReadHandler = std::function<bool(size_t)>;
 using WriteHandler = std::function<bool(size_t)>;
 
-class IEventPoller
+class EventPoller
 {
 public:
 	/**
@@ -37,5 +37,8 @@ public:
 	* Ö´ÐÐpollÊÂ¼þ
 	*/
 	virtual int update() = 0;
+
+	static EventPoller* createEventPoller();
 };
+
 
