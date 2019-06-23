@@ -19,10 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MemoryStream.h" />
     <ClInclude Include="ObjectPool.h" />
     <ClInclude Include="Thread.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MemoryStream.cpp" />
     <ClCompile Include="Thread.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -68,7 +68,7 @@ void TCPListener::onAccept(SOCKET fd)
 {
 	eventPoller_->asyncAccept(fd_, std::bind(&TCPListener::onAccept, this, std::placeholders::_1));
 
-	TCPConnection* connection = TCPConnectionManager_.createConnection();
+	Connection* connection = TCPConnectionManager_.createConnection();
 
 	if (connection == nullptr)
 	{
@@ -78,5 +78,9 @@ void TCPListener::onAccept(SOCKET fd)
 	}
 
 	connection->attach(fd, eventPoller_);
-	connection->recvData();
+
+	if (connection->recvData() == false)
+	{
+
+	}
 }

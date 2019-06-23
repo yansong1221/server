@@ -12,35 +12,61 @@ public:
 	{
 		for (int i = 0; i < objectSize; ++i)
 		{
-			objects_.push_back(new T());
+			freeObjects_.push_back(new T());
 		}
 	}
 	~ObjectPool()
 	{
+		while (!freeObjects_.empty())
+		{
+			auto obj = freeObjects_.front();
+			delete obj;
+			freeObjects_.pop_front();
+		}
 
+		while (!activeObjects_.empty())
+		{
+			auto obj = activeObjects_.front();
+			delete obj;
+			activeObjects_.pop_front();
+		}
 	}
 
 	T* createObject()
 	{
-		if (!objects_.empty())
+		if (!freeObjects_.empty())
 		{
-			T* obj = objects_.front();
-			objects_.pop_front();
+			T* obj = freeObjects_.front();
+			freeObjects_.pop_front();
+			activeObjects_.push_back(obj);
 			return obj;
 		}
 		T* obj = new T();
+		activeObjects_.push_back(obj);
 		return obj;
 	}
-	void reclaimObject(T* obj)
+	bool reclaimObject(T* obj)
 	{
-		objects_.push_back(obj);
+		auto iter = std::find(activeObjects_.begin(), activeObjects_.end(), obj);
+		if (iter == activeObjects_.end())
+		{
+			return false;
+		}
+		activeObjects_.erase(iter);
+		freeObjects_.push_back(obj);
 	}
 
-	size_t size() const
+	size_t freeSize() const
 	{
-		return objects_.size();
+		return freeObjects_.size();
+	}
+
+	size_t activeSize() const
+	{
+		return activeObjects_.size();
 	}
 private:
-	OBJECTS objects_;
+	OBJECTS freeObjects_;
+	OBJECTS activeObjects_;
 };
 

@@ -57,6 +57,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <list>
+#include <algorithm>
 //typedef
 #if PLATFORM_TYPE == PLATFORM_LINUX
 typedef  int SOCKET;
@@ -69,7 +70,7 @@ typedef struct _WSABUF {
 } WSABUF, FAR * LPWSABUF;
 
 #define ZeroMemory(Destination,Length) memset((Destination),0,(Length))
-
+#define CopyMemory(Destination,Source,Length) memcpy((Destination),(Source),(Length))
 #endif
 
 #ifndef MAKE_UINT32
