@@ -2,13 +2,20 @@
 
 #include "Platform.h"
 #include "../Common/MemoryStream.h"
+#include "../Common/ObjectPool.h"
 
 class EventPoller;
+class NetPacket;
+class Connection;
+
+using ConnectionCloseHnadler = std::function<void(Connection*)>;
+using ConnectionAttachHandler = std::function<void(Connection*)>;
+using ConnectionMessageHandler = std::function<void(Connection*,NetPacket*)>;
 
 class Connection
 {
 public:
-	Connection(uint16_t index);
+	Connection();
 	~Connection();
 public:
 	uint32_t getConnID() const;
@@ -18,12 +25,23 @@ public:
 	bool recvData();
 
 	bool sendData(const void* data, size_t sz);
+
+	void close();
+
+	void setBindIndex(uint16_t bindIndex);
+
+	//…Ë÷√ªÿµ˜Handler
+	void setCloseHandler(ConnectionCloseHnadler handler);
+	void setAttachHandler(ConnectionAttachHandler handler);
+	void setMessageHandler(ConnectionMessageHandler handler);
+
 private:
 	bool onRecv(size_t bytes);
 	bool onWrite(size_t bytes);
+
 private:
-	uint16_t index_;
-	uint16_t round_;
+	uint16_t bindIndex_;
+	uint16_t roundValue_;
 	SOCKET fd_;
 	EventPoller*  eventPoller_;
 
@@ -33,19 +51,9 @@ private:
 	CMemoryStream sendBuffer_;
 
 	bool sendding_,readding;
-};
 
-class ConnectionManager
-{
-public:
-	ConnectionManager(size_t maxConn);
-	~ConnectionManager();
-
-public:
-	Connection* createConnection();
-
-private:
-	std::list<Connection*> freeConnections_;
-	std::list<Connection*> activeConnections_;
+	ConnectionCloseHnadler connectionCloseHnadler_;
+	ConnectionAttachHandler connectionAttachHandler_;
+	ConnectionMessageHandler connectionMessageHandler_;
 };
 

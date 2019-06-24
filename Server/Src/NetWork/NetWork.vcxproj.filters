@@ -12,6 +12,8 @@
     <ClCompile Include="TCPListener.cpp" />
     <ClCompile Include="Connection.cpp" />
     <ClCompile Include="EventPoller.cpp" />
+    <ClCompile Include="NetPacket.cpp" />
+    <ClCompile Include="TCPConnector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFunc.h" />
@@ -20,5 +22,7 @@
     <ClInclude Include="Platform.h" />
     <ClInclude Include="TCPListener.h" />
     <ClInclude Include="Connection.h" />
+    <ClInclude Include="NetPacket.h" />
+    <ClInclude Include="TCPConnector.h" />
   </ItemGroup>
 </Project>

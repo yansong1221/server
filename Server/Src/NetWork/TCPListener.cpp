@@ -6,9 +6,10 @@
 
 TCPListener::TCPListener()
 	:fd_(CommonFunc::createSocket()),
-	eventListenerDelegate_(nullptr),
-	eventPoller_(nullptr),
-	ConnectionManager_(1024)
+	listenerCloseHandler_(nullptr),
+	listenerMessageHandler_(nullptr),
+	listenerNewConnectHandler_(nullptr),
+	eventPoller_(nullptr)
 {
 	eventPoller_ = EventPoller::createEventPoller();
 }
@@ -39,9 +40,49 @@ void TCPListener::listenAddress(const std::string& address, int port)
 	eventPoller_->asyncAccept(fd_,std::bind(&TCPListener::onAccept,this,std::placeholders::_1));
 }
 
-void TCPListener::setEventListenerDelegate(IEventListenerDelegate* eventListenerDelegate)
+void TCPListener::setCloseHandler(TCPListenerCloseHandler handler)
 {
-	eventListenerDelegate_ = eventListenerDelegate;
+	listenerCloseHandler_ = handler;
+}
+
+void TCPListener::setMessageHandler(TCPListenerMessageHandler handler)
+{
+	listenerMessageHandler_ = handler;
+}
+
+void TCPListener::setNewConnectHandler(TCPListenerNewConnectHandler handler)
+{
+	listenerNewConnectHandler_ = handler;
+}
+
+bool TCPListener::closeConnection(Connection* conn)
+{
+	if (!connections_.hasObject(conn))
+	{
+		assert(false);
+		return false;
+	}
+
+	conn->close();
+	return true;
+}
+
+Connection* TCPListener::findConnection(uint32_t connID)
+{
+	const auto& activeConns = connections_.getActiveObjects();
+
+	auto iter = std::find_if(activeConns.begin(), activeConns.end(), [&](const Connection* conn)
+	{
+		return conn->getConnID() == connID;
+	});
+
+	if (iter == activeConns.end())
+	{
+		assert(false);
+		return nullptr;
+	}
+
+	return *iter;
 }
 
 bool TCPListener::onThreadStart()
@@ -65,19 +106,26 @@ void TCPListener::onAccept(SOCKET fd)
 {
 	eventPoller_->asyncAccept(fd_, std::bind(&TCPListener::onAccept, this, std::placeholders::_1));
 
-	Connection* connection = ConnectionManager_.createConnection();
-
-	if (connection == nullptr)
+	auto conn = connections_.createObject();
+	conn->setAttachHandler([this](Connection* conn)
 	{
-		//最大连接限制
-		CommonFunc::closeSocket(fd);
-		return;
-	}
-
-	connection->attach(fd, eventPoller_);
-
-	if (connection->recvData() == false)
+		if (listenerNewConnectHandler_)listenerNewConnectHandler_(conn->getConnID());
+	});
+	conn->setCloseHandler([this](Connection* conn)
 	{
+		if (listenerCloseHandler_)listenerCloseHandler_(conn->getConnID());
+		connections_.reclaimObject(conn);
+	});
+	conn->setMessageHandler([this](Connection* conn, NetPacket* netPacket)
+	{
+		if (listenerMessageHandler_)listenerMessageHandler_(conn->getConnID(), netPacket);
+	});
 
+	conn->setBindIndex(roundValue_++);
+	conn->attach(fd, eventPoller_);
+
+	if (conn->recvData() == false)
+	{
+		conn->close();
 	}
 }

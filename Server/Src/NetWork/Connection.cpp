@@ -1,12 +1,17 @@
 #include "Connection.h"
 #include "EventPoller.h"
 #include "CommonFunc.h"
+#include "TCPListener.h"
+#include "NetPacket.h"
+#include <functional>
 
 
-
-Connection::Connection(uint16_t index)
-	:index_(index),
-	round_(0)
+Connection::Connection()
+	:bindIndex_(0),
+	roundValue_(0),
+	connectionCloseHnadler_(nullptr),
+	connectionAttachHandler_(nullptr),
+	connectionMessageHandler_(nullptr)
 {
 	resumeData();
 }
@@ -18,22 +23,25 @@ Connection::~Connection()
 
 uint32_t Connection::getConnID() const
 {
-	return MAKE_UINT32(index_, round_);
+	return MAKE_UINT32(bindIndex_, roundValue_);
 }
 
 void Connection::attach(SOCKET fd, EventPoller* eventPoller)
 {
 	fd_ = fd;
 	eventPoller_ = eventPoller;
+
+	connectionAttachHandler_(this);
 }
 
 
 void Connection::resumeData()
 {
 	fd_ = INVALID_SOCKET;
-	round_++;
+	roundValue_++;
 	sendding_ = false;
 	readding = false;
+	sendBuffer_.clear();
 }
 
 bool Connection::recvData()
@@ -49,7 +57,7 @@ bool Connection::recvData()
 
 bool Connection::sendData(const void* data, size_t sz)
 {
-	if (data != nullptr || sz != 0)
+	if (data != nullptr && sz != 0)
 	{
 		sendBuffer_.appendBinary(data, sz);
 	}
@@ -71,62 +79,66 @@ bool Connection::sendData(const void* data, size_t sz)
 	return true;
 }
 
+void Connection::close()
+{
+	CommonFunc::closeSocket(fd_);
+
+	if (!sendding_ && !readding)
+	{
+		if(connectionCloseHnadler_)connectionCloseHnadler_(this);
+		resumeData();
+	}
+}
+
+void Connection::setBindIndex(uint16_t bindIndex)
+{
+	bindIndex_ = bindIndex;
+}
+
+void Connection::setCloseHandler(ConnectionCloseHnadler handler)
+{
+	connectionCloseHnadler_ = handler;
+}
+
+void Connection::setAttachHandler(ConnectionAttachHandler handler)
+{
+	connectionAttachHandler_ = handler;
+}
+
+void Connection::setMessageHandler(ConnectionMessageHandler handler)
+{
+	connectionMessageHandler_ = handler;
+}
+
 bool Connection::onRecv(size_t bytes)
 {
 	readding = false;
 
 	//发生错误关闭连接
-	if (bytes == 0)
+	if (bytes == 0 || recvData() == false)
 	{
+		close();
 		return true;
 	}
 
-	if (recvData() == false)
-	{
-		return true;
-	}
+	sendData(recvBuffer, bytes);
+	close();
 	return true;
 }
 
 bool Connection::onWrite(size_t bytes)
 {
 	sendding_ = false;
-	if (bytes == 0)
-	{
-		return true;
-	}
 	sendBuffer_.remove(0, bytes);
-	if (!sendData(nullptr, 0))
+
+	if (bytes == 0 || !sendData(nullptr, 0))
 	{
+		close();
 		return true;
 	}
-
+	
 	return true;
 }
 
-ConnectionManager::ConnectionManager(size_t maxConn)
-{
-	for (uint16_t index = 0; index < maxConn; ++index)
-	{
-		freeConnections_.push_back(new Connection(index));
-	}
-}
 
-ConnectionManager::~ConnectionManager()
-{
 
-}
-
-Connection* ConnectionManager::createConnection()
-{
-	if (freeConnections_.empty())
-	{
-		return nullptr;
-	}
-
-	auto conn = freeConnections_.front();
-	freeConnections_.pop_front();
-
-	activeConnections_.push_back(conn);
-	return conn;
-}

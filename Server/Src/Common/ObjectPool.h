@@ -52,8 +52,12 @@ public:
 		{
 			return false;
 		}
+		return true;
+			
 		activeObjects_.erase(iter);
 		freeObjects_.push_back(obj);
+
+		return true;
 	}
 
 	size_t freeSize() const
@@ -64,6 +68,21 @@ public:
 	size_t activeSize() const
 	{
 		return activeObjects_.size();
+	}
+
+	bool hasObject(T* obj) const
+	{
+		auto iter = std::find(activeObjects_.begin(), activeObjects_.end(), obj);
+		if (iter == activeObjects_.end())
+		{
+			return false;
+		}
+		return true;
+	}
+
+	const OBJECTS& getActiveObjects() const
+	{
+		return activeObjects_;
 	}
 private:
 	OBJECTS freeObjects_;

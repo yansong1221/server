@@ -7,26 +7,14 @@
 
 class NetPacket;
 
-class IEventListenerDelegate
-{
-public:
-	/**
-	* 当有新的连接回调
-	*/
-	virtual void onListenerNewConnect(uint32_t connID) = 0;
-	/**
-	* 有新的网络消息包
-	*/
-	virtual void onListenerMessage(uint32_t connID, NetPacket* packet) = 0;
-	/**
-	* 有连接关闭
-	*/
-	virtual void onListenerClose(uint32_t connID) = 0;
-};
+using TCPListenerCloseHandler = std::function<void(uint32_t)>;
+using TCPListenerMessageHandler = std::function<void(uint32_t, NetPacket*)>;
+using TCPListenerNewConnectHandler = std::function<void(uint32_t)>;
 
 class TCPListener : public Thread
 {
 public:
+
 	TCPListener();
 	~TCPListener();
 	/**
@@ -39,8 +27,13 @@ public:
 	/**
 	* 设置网络事件接口
 	*/
-	void setEventListenerDelegate(IEventListenerDelegate* eventListenerDelegate);
+	void setCloseHandler(TCPListenerCloseHandler handler);
+	void setMessageHandler(TCPListenerMessageHandler handler);
+	void setNewConnectHandler(TCPListenerNewConnectHandler handler);
 
+	bool closeConnection(Connection* conn);
+
+	Connection* findConnection(uint32_t connID);
 protected:
 	/**
 	* 当线程启动前调用，如果返回false线程就不启动
@@ -60,10 +53,14 @@ private:
 
 private:
 	SOCKET fd_;
-	IEventListenerDelegate* eventListenerDelegate_;
+
 	EventPoller* eventPoller_;
 
-	ConnectionManager ConnectionManager_;
+	TCPListenerCloseHandler listenerCloseHandler_;
+	TCPListenerMessageHandler listenerMessageHandler_;
+	TCPListenerNewConnectHandler listenerNewConnectHandler_;
 
+	ObjectPool<Connection>  connections_;
+	uint16_t roundValue_ = 0;
 };
 
