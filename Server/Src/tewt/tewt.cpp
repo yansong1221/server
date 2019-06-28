@@ -1,6 +1,6 @@
 ﻿// tewt.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
-#include "../NetWork/TCPListener.h"
+#include "../NetWork/NetManager.h"
 #include "pch.h"
 #include <iostream>
 

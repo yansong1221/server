@@ -52,7 +52,6 @@ public:
 		{
 			return false;
 		}
-		return true;
 			
 		activeObjects_.erase(iter);
 		freeObjects_.push_back(obj);

@@ -15,6 +15,7 @@
 #include <WinSock2.h>
 #include <windows.h>
 #include <MSWSock.h>
+#include <WS2tcpip.h>
 #pragma comment(lib, "WS2_32")
 #endif
 
@@ -85,6 +86,7 @@ enum IO_OPERATION_TYPE
 	ACCEPT_POSTED,		// 投递Accept操作
 	SEND_POSTED,		// 投递Send操作
 	RECV_POSTED,		// 投递Recv操作
+	CONNECT_POSTED,		//	投递Connect 操作
 };
 
 class IOContext
@@ -100,6 +102,8 @@ public:
 	SOCKET				fd;					// 此IO操作对应的socket	
 	IO_OPERATION_TYPE	ioType;				// IO操作类型
 
+	SOCKET              listenFd;
+
 	IOContext()
 	{
 		reset();
@@ -111,6 +115,8 @@ public:
 		ZeroMemory(&overLapped, sizeof(overLapped));
 #endif
 		fd = INVALID_SOCKET;
+		listenFd = INVALID_SOCKET;
+
 		ZeroMemory(&wsaBuf, sizeof(wsaBuf));
 		ioType = NULL_POSTED;
 	}

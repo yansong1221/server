@@ -9,20 +9,18 @@
   <ItemGroup>
     <ClCompile Include="CommonFunc.cpp" />
     <ClCompile Include="IOCPPoller.cpp" />
-    <ClCompile Include="TCPListener.cpp" />
     <ClCompile Include="Connection.cpp" />
     <ClCompile Include="EventPoller.cpp" />
     <ClCompile Include="NetPacket.cpp" />
-    <ClCompile Include="TCPConnector.cpp" />
+    <ClCompile Include="NetManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonFunc.h" />
     <ClInclude Include="EventPoller.h" />
     <ClInclude Include="IOCPPoller.h" />
     <ClInclude Include="Platform.h" />
-    <ClInclude Include="TCPListener.h" />
     <ClInclude Include="Connection.h" />
     <ClInclude Include="NetPacket.h" />
-    <ClInclude Include="TCPConnector.h" />
+    <ClInclude Include="NetManager.h" />
   </ItemGroup>
 </Project>

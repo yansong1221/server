@@ -8,12 +8,15 @@ class EventPoller;
 class NetPacket;
 class Connection;
 
-using ConnectionCloseHnadler = std::function<void(Connection*)>;
-using ConnectionAttachHandler = std::function<void(Connection*)>;
-using ConnectionMessageHandler = std::function<void(Connection*,NetPacket*)>;
 
 class Connection
 {
+public:
+
+	using CloseHnadler = std::function<void(Connection*)>;
+	using AttachHandler = std::function<void(Connection*)>;
+	using MessageHandler = std::function<void(Connection*, NetPacket*)>;
+
 public:
 	Connection();
 	~Connection();
@@ -31,9 +34,9 @@ public:
 	void setBindIndex(uint16_t bindIndex);
 
 	//…Ë÷√ªÿµ˜Handler
-	void setCloseHandler(ConnectionCloseHnadler handler);
-	void setAttachHandler(ConnectionAttachHandler handler);
-	void setMessageHandler(ConnectionMessageHandler handler);
+	void setCloseHandler(CloseHnadler handler);
+	void setAttachHandler(AttachHandler handler);
+	void setMessageHandler(MessageHandler handler);
 
 private:
 	bool onRecv(size_t bytes);
@@ -45,15 +48,15 @@ private:
 	SOCKET fd_;
 	EventPoller*  eventPoller_;
 
-	char recvBuffer[1024];
+	char recvBuffer_[1024];
+	char senddingBuffer_[1024];
 
-	char senddingBuffer[1024];
 	CMemoryStream sendBuffer_;
 
-	bool sendding_,readding;
+	bool sendding_,readding_;
 
-	ConnectionCloseHnadler connectionCloseHnadler_;
-	ConnectionAttachHandler connectionAttachHandler_;
-	ConnectionMessageHandler connectionMessageHandler_;
+	CloseHnadler connectionCloseHnadler_;
+	AttachHandler connectionAttachHandler_;
+	MessageHandler connectionMessageHandler_;
 };
 

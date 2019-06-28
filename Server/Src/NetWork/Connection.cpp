@@ -1,7 +1,7 @@
 #include "Connection.h"
 #include "EventPoller.h"
 #include "CommonFunc.h"
-#include "TCPListener.h"
+#include "NetManager.h"
 #include "NetPacket.h"
 #include <functional>
 
@@ -40,18 +40,18 @@ void Connection::resumeData()
 	fd_ = INVALID_SOCKET;
 	roundValue_++;
 	sendding_ = false;
-	readding = false;
+	readding_ = false;
 	sendBuffer_.clear();
 }
 
 bool Connection::recvData()
 {
-	if (!eventPoller_->asyncRecv(fd_, recvBuffer, sizeof(recvBuffer),
+	if (!eventPoller_->asyncRecv(fd_, recvBuffer_, sizeof(recvBuffer_),
 		std::bind(&Connection::onRecv, this, std::placeholders::_1)))
 	{
 		return false;
 	}
-	readding = true;
+	readding_ = true;
 	return true;
 }
 
@@ -67,10 +67,10 @@ bool Connection::sendData(const void* data, size_t sz)
 		return true;
 	}
 
-	size_t copySize = min(sendBuffer_.size(), sizeof(senddingBuffer));
-	CopyMemory(&senddingBuffer, sendBuffer_.data(), copySize);
+	size_t copySize = min(sendBuffer_.size(), sizeof(senddingBuffer_));
+	CopyMemory(&senddingBuffer_, sendBuffer_.data(), copySize);
 
-	if (!eventPoller_->asyncSend(fd_, senddingBuffer, copySize,
+	if (!eventPoller_->asyncSend(fd_, senddingBuffer_, copySize,
 		std::bind(&Connection::onWrite, this, std::placeholders::_1)))
 	{
 		return false;
@@ -83,7 +83,7 @@ void Connection::close()
 {
 	CommonFunc::closeSocket(fd_);
 
-	if (!sendding_ && !readding)
+	if (!sendding_ && !readding_)
 	{
 		if(connectionCloseHnadler_)connectionCloseHnadler_(this);
 		resumeData();
@@ -95,24 +95,24 @@ void Connection::setBindIndex(uint16_t bindIndex)
 	bindIndex_ = bindIndex;
 }
 
-void Connection::setCloseHandler(ConnectionCloseHnadler handler)
+void Connection::setCloseHandler(CloseHnadler handler)
 {
 	connectionCloseHnadler_ = handler;
 }
 
-void Connection::setAttachHandler(ConnectionAttachHandler handler)
+void Connection::setAttachHandler(AttachHandler handler)
 {
 	connectionAttachHandler_ = handler;
 }
 
-void Connection::setMessageHandler(ConnectionMessageHandler handler)
+void Connection::setMessageHandler(MessageHandler handler)
 {
 	connectionMessageHandler_ = handler;
 }
 
 bool Connection::onRecv(size_t bytes)
 {
-	readding = false;
+	readding_ = false;
 
 	//发生错误关闭连接
 	if (bytes == 0 || recvData() == false)
@@ -121,8 +121,7 @@ bool Connection::onRecv(size_t bytes)
 		return true;
 	}
 
-	sendData(recvBuffer, bytes);
-	close();
+	sendData(recvBuffer_, bytes);
 	return true;
 }
 

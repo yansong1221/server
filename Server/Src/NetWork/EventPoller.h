@@ -5,6 +5,7 @@
 using AcceptHandler = std::function<void(SOCKET)>;
 using ReadHandler = std::function<bool(size_t)>;
 using WriteHandler = std::function<bool(size_t)>;
+using ConnectHandler = std::function<void(bool)>;
 
 class EventPoller
 {
@@ -33,6 +34,7 @@ public:
 	*/
 	virtual bool asyncSend(SOCKET fd, void* buffer, size_t sz, WriteHandler handler) = 0;
 
+	virtual bool asyncConnect(SOCKET fd, const std::string& address, int port, ConnectHandler handler) = 0;
 	/**
 	* Ö´ÐÐpollÊÂ¼þ
 	*/
