@@ -5,7 +5,6 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
-
 #include <vector>
 #include <stdexcept>
 #include <string>
@@ -20,11 +19,13 @@ std::is_same<T, int8_t>::value ||		\
 std::is_same<T, int16_t>::value ||		\
 std::is_same<T, int32_t>::value ||		\
 std::is_same<T, int64_t>::value ||		\
+std::is_same<T, double>::value ||		\
+std::is_same<T, float>::value ||		\
 std::is_class<T>::value					\
 >::type
 
 
-class MemoryStreamException : public std::exception 
+class MemoryStreamException : public std::exception
 {
 public:
 	MemoryStreamException(const std::string& _Message) :message_(_Message) {}
@@ -65,6 +66,7 @@ public:
 	}
 
 	std::string readBinary(size_t sz);
+	void readBinary(void* buffer, size_t sz,size_t bufferSize);
 	std::string readString();
 
 	std::string readAll();
@@ -88,11 +90,12 @@ public:
 	//-----------------------------------------------------
 	const void* data() const;
 	size_t size() const;
+	size_t capacity() const;
 
 	size_t wPos() const;
 	size_t rPos() const;
 
-
+	size_t readSize() const;
 
 	void clear(bool clearData = false);
 
@@ -100,11 +103,13 @@ public:
 
 	void remove(size_t offset, size_t count);
 
+	void removeFront(size_t count);
+
 	void resetReadPos();
 	
 protected:
 	std::vector<uint8_t> data_;
-	size_t writePos_, readPos_;
+	size_t writePos_, readPos_,startPos_;
 };
 
 #endif
